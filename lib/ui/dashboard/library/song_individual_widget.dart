@@ -7,12 +7,20 @@ class SongIndiComp extends StatefulWidget {
   final String id;
   final String? imageUrl;
   late String owner;
-
-   SongIndiComp({
+  late dynamic notifier;
+  late String pre;
+  late String nxt;
+  late List<dynamic>pl;
+  
+  SongIndiComp({
     super.key,
     required this.title,
     required this.id, 
     this.imageUrl,
+    required this.notifier,
+    required this.pre,
+    required this.nxt,
+    required this.pl,
   });
 
   @override
@@ -43,7 +51,15 @@ class _SongIndiCompState extends State<SongIndiComp> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return InkWell(
+      onTap: (){
+       if(artistName !=null && albumImageUrl !=null){
+        print("Setting the Notifier!!! ${widget.pl}");
+        widget.notifier.setQueue(plQueue:widget.pl);
+        widget.notifier.setSong(name:widget.title, artist:artistName , image:albumImageUrl,trackId:widget.id,pre:widget.pre,nxt:widget.nxt);
+       }
+      },
+      child:  Padding(
       padding: const EdgeInsets.symmetric( vertical: 8),
       child: Row(
         mainAxisSize: MainAxisSize.max,
@@ -94,6 +110,7 @@ class _SongIndiCompState extends State<SongIndiComp> {
           ),
         ],
       ),
+    ),
     );
   }
 }

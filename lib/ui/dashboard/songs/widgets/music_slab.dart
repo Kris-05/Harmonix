@@ -13,14 +13,15 @@ class MusicSlab extends ConsumerWidget {
   final String imgPath;
   final String trackId;
   final AudioPlayer player;
+  String pre,nxt;
 
-  const MusicSlab({
+  MusicSlab({
     super.key,
     required this.songName,
     required this.artistName,
     required this.imgPath,
     required this.trackId,
-    required this.player,
+    required this.player, required this.pre, required this.nxt,
   });
 
   @override
@@ -32,11 +33,11 @@ class MusicSlab extends ConsumerWidget {
     return GestureDetector(
       onTap: (){
         // Update global state when clicking the MusicSlab
-        musicNotifier.setSong(songName, artistName, imgPath, trackId);
+        musicNotifier.setSong( name:  songName,artist:  artistName,image:  imgPath,trackId:  trackId);
         Navigator.pushNamed(
           context,
           AppRoutes.songsPage,
-          arguments: {'trackId': trackId}, // Pass trackId as an argument
+          arguments: {'trackId': trackId,'pre':pre,'nxt':nxt}, // Pass trackId as an argument
         );
       },
       child: Container(

@@ -85,7 +85,10 @@ class _CreatePlaylistState extends State<CreatePlaylist> {
                   children: [
                     // Cancel Button
                     OutlinedButton(
-                      onPressed: () {
+                      onPressed: ()async {
+                        
+                        FocusScope.of(context).unfocus();
+                        await Future.delayed(Duration(milliseconds: 100));
                         Navigator.pop(context);
                       },
                       style: OutlinedButton.styleFrom(
@@ -116,6 +119,8 @@ class _CreatePlaylistState extends State<CreatePlaylist> {
                                     await Playlistapi.createPlaylistApi(playListName:playlistName,email:"sakthi@gmail.com");
                                     print("playlist Created With Name!!!");
                                     widget.fetchPl();
+                                    FocusScope.of(context).unfocus();
+                                    await Future.delayed(Duration(milliseconds: 100));
                                     Navigator.pop(context);
 
                                   }

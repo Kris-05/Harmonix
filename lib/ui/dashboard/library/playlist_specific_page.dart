@@ -1,31 +1,38 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:palette_generator/palette_generator.dart';
+import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
+import 'package:spotify_ui/providers/home_provider.dart';
+import 'package:spotify_ui/providers/music_provider.dart';
 import 'package:spotify_ui/ui/dashboard/library/song_individual_widget.dart';
 import 'package:spotify_ui/api/playlistApi.dart';
 import 'package:spotify_ui/ui/dashboard/library/search_page_for_playlist.dart';
+import 'package:spotify_ui/ui/dashboard/songs/widgets/music_slab.dart';
 
-class PlaylistSpecificPage extends StatefulWidget {
+class PlaylistSpecificPage extends ConsumerStatefulWidget {
   final bool isLiked;
   final PaletteGenerator bgColor;
   final String playListName;
   final String id;
-  VoidCallback onUpdate;
+  final VoidCallback onUpdate;
 
-  PlaylistSpecificPage({
+  const PlaylistSpecificPage({
     super.key,
     required this.isLiked,
     required this.bgColor,
     required this.playListName,
-    required this.id, required this.onUpdate,
+    required this.id,
+    required this.onUpdate,
   });
 
   @override
-  State<PlaylistSpecificPage> createState() => _PlaylistSpecificPageState();
+  ConsumerState<PlaylistSpecificPage> createState() => _PlaylistSpecificPageState();
 }
 
-class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
+class _PlaylistSpecificPageState extends ConsumerState<PlaylistSpecificPage> {
   late PaletteGenerator _dynamicGradient;
   ScrollController _scrollController = ScrollController();
   bool showTitleInAppBar = false;
@@ -34,7 +41,7 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
 
   // Fetch playlist using Future to reload on every build
   late Future<List<dynamic>> _playlistFuture;
-
+  
   @override
   void initState() {
     super.initState();
@@ -55,15 +62,52 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
     });
   }
 
-  
-  void _fetchPlaylist(){
-    setState(()  {
-      _playlistFuture =  Playlistapi.getPlayListSongs(
-        id: widget.id.toString(),
-        email: "sakthi@gmail.com",
-      );
+ 
+ List<dynamic> _fetchedSongs = [];
+
+void _fetchPlaylist() {
+  setState(() {
+    _playlistFuture = Playlistapi.getPlayListSongs(
+      id: widget.id.toString(),
+      email: "sakthi@gmail.com",
+    );
+    _playlistFuture.then((songs) {
+      _fetchedSongs = songs;
     });
+  });
+}
+
+    List<String> _extractIds(List<dynamic> queue) {
+      List<String>q=[];
+      for(int i=0;i<queue.length;i++){
+        q.add(queue[i]['id']);
+      }
+
+      print("\n\n\n !!! p:$q");
+      return q;
+    }
+
+
+ String _getPre(int ind){
+    if(ind==0){
+      print("\n\niniFunc:${_fetchedSongs[(_fetchedSongs.length)-1]['name']},,");
+      return _fetchedSongs[(_fetchedSongs.length)-1]['id'];
+    }
+     print("\n\niniFunc:${_fetchedSongs[(0)]['name']} =>${_fetchedSongs[ind-1]['id']}");
+    return _fetchedSongs[ind-1]['id'];
   }
+
+
+  String _getNext(int ind){
+      if(ind+1==_fetchedSongs.length){
+        print("\n\n nxtFunc:${_fetchedSongs[(0)]['name']}");
+      return _fetchedSongs[0]['id'];
+    }
+    print("\n\n nxtFunc:${_fetchedSongs[ind]['name']},,,${_fetchedSongs[ind+1]['id']}");
+    return _fetchedSongs[ind+1]['id'];
+  }
+
+
 
   void _fetchLike()async{
     isLiked=await Playlistapi.isPlaylistLiked(id: widget.id.toString(),
@@ -100,6 +144,16 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
 
   @override
   Widget build(BuildContext context) {
+
+    final selectedIndex = ref.watch(homeProvider);
+    final homeNotifier = ref.read(homeProvider.notifier);
+    final selectedSong = ref.watch(musicProvider);
+
+    final musicNotifier = ref.read(musicProvider.notifier);
+
+
+    final AudioPlayer _player = AudioPlayer();
+    
     Color dominantColor = widget.bgColor.dominantColor?.color ?? Colors.grey;
     bool isBrightColor = dominantColor.computeLuminance() > 0.6;
 
@@ -109,7 +163,74 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
             : dominantColor;
 
     return Scaffold(
-      body: Stack(
+      body:Stack(
+        children: [
+          _mainContent(adjustedColor,musicNotifier),
+          if (selectedSong.songName.isNotEmpty)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: MusicSlab(
+                songName: selectedSong.songName,
+                artistName: selectedSong.artistName,
+                imgPath: selectedSong.imgPath,
+                trackId: selectedSong.trackId,
+                player: _player,
+                pre:selectedSong.pre,
+                nxt:selectedSong.nxt
+              ),
+            ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.black,
+        currentIndex: selectedIndex,
+        onTap: (i) => homeNotifier.setPage(i),
+        selectedItemColor: AppColors.primaryColor,
+        unselectedItemColor: AppColors.greyColor,
+        items: [
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset(
+              selectedIndex == 0
+                  ? "assets/svg/Home_Solid.svg"
+                  : "assets/svg/Home_outline.svg",
+              color: selectedIndex == 0
+                  ? AppColors.primaryColor
+                  : AppColors.greyColor,
+            ),
+            label: "Home",
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset(
+              "assets/svg/Search_Solid.svg",
+              color: selectedIndex == 1
+                  ? AppColors.primaryColor
+                  : AppColors.greyColor,
+            ),
+            label: "Search",
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset(
+              selectedIndex == 2
+                  ? "assets/svg/Library_Solid.svg"
+                  : "assets/svg/Library_outline.svg",
+              color: selectedIndex == 2
+                  ? AppColors.primaryColor
+                  : AppColors.greyColor,
+            ),
+            label: "Library",
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+  Widget _mainContent(adjustedColor,notifier){
+    return (
+      Container(child: Stack(
         children: [
           Container(
             decoration: BoxDecoration(
@@ -205,7 +326,7 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
                     ),
                     backgroundColor:
                         showTitleInAppBar
-                            ? adjustedColor.withOpacity(1)
+                            ? adjustedColor.withOpacity(1.0)
                             : Colors.transparent,
                     leading: InkWell(
                       onTap: () {
@@ -287,20 +408,30 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
                                 return noSongsComp(context);
                               }
 
-                              return ListView.builder(
-                                shrinkWrap: true,
-                                padding: EdgeInsets.symmetric(vertical: 0),
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: snapshot.data!.length,
-                                itemBuilder: (context, index) {
-                                  final song = snapshot.data![index];
-                                  return songComp(
-                                    title: song['name'] ?? "Unknown Song",
-                                    id:song['id'],
-                                    isAdd: false,
-                                  );
-                                },
-                              );
+                              return  Column(
+                                  children: [
+                                    ListView.builder(
+                                      shrinkWrap: true,
+                                      padding: EdgeInsets.symmetric(vertical: 0),
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      itemCount: snapshot.data!.length,
+                                      itemBuilder: (context, index) {
+                                        final song = snapshot.data![index];
+                                        return songComp(
+                                          title: song['name'] ?? "Unknown Song",
+                                          id: song['id'],
+                                          isAdd: false,
+                                          notifier: notifier,
+                                          pre: _getPre(index),
+                                          nxt: _getNext(index),
+                                          pl: _extractIds(_fetchedSongs)
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 50.0),
+                                  ],
+                                );
+
                             },
                           ),
                         
@@ -312,7 +443,7 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
                 ],
               ),
         ],
-      ),
+      ),)
     );
   }
 
@@ -377,6 +508,10 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
             return songComp(
               id: "Owner ${ind + 1}",
               title: "Song ${ind + 1}",
+              notifier: null,
+              pre: "",
+              nxt: "",
+              pl: [],
             );
           },
         ),
@@ -466,24 +601,28 @@ Widget iconWidget(context,bool isLik,plname, email, id,func,changeLike,VoidCallb
 Widget songComp({
   required String id,
   required String title,
+  required dynamic notifier,
+  required String pre,
+  required String nxt,
+  required List<dynamic> pl,
   bool isAdd = true,
 }) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 0.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Expanded(child: SongIndiComp(title: title, id:id)),
-        const SizedBox(width: 8),
-        if (!isAdd)
-          const Icon(
-            Icons.more_vert_outlined,
-            color: Color(0xffABA4A3),
-            size: 25,
-          ),
-        if (isAdd)
-          const Icon(Icons.add_circle_outline, color: Colors.green, size: 28),
-      ],
-    ),
-  );
+  return  Padding(       
+      padding: const EdgeInsets.symmetric(vertical: 0.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Expanded(child: SongIndiComp(title: title, id:id,notifier: notifier,pre: pre,nxt: nxt,pl: pl,)),
+          const SizedBox(width: 8),
+          if (!isAdd)
+            const Icon(
+              Icons.more_vert_outlined,
+              color: Color(0xffABA4A3),
+              size: 25,
+            ),
+          if (isAdd)
+            const Icon(Icons.add_circle_outline, color: Colors.green, size: 28),
+        ],
+      ),
+    );
 }

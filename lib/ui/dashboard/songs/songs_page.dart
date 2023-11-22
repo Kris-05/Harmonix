@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/providers/music_provider.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
@@ -79,7 +80,7 @@ class SongsPage extends ConsumerWidget {
             recentlyPlayedUI(), // top bar
             mSpacer(),
             recentlyPlayedList(mRecentPlayedList, musicNotifier), // recently played
-            playListUI(),
+            playListUI(context),
             mSpacer(mHeight: 20),
             editorPicksUI(mEditorPicksList, musicNotifier),
           ],
@@ -121,7 +122,7 @@ class SongsPage extends ConsumerWidget {
         itemBuilder: (_, i) {
           return GestureDetector(
             onTap: () {
-              notifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath'], songs[i]['trackId'],);
+              notifier.setSong(name:  songs[i]['name'],artist:  songs[i]['artist'],image:  songs[i]['imgPath'],trackId:  songs[i]['trackId'],);
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -170,7 +171,7 @@ class SongsPage extends ConsumerWidget {
     );
   }
 
-  Widget playListUI(){
+  Widget playListUI(context){
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Column(
@@ -188,9 +189,16 @@ class SongsPage extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(10), // Rounded corners
                   border: Border.all(color: Colors.white, width: 2), // White border
                 ),
-                child: const Center(
-                  child: Icon(Icons.add, color: Colors.white, size: 40), // Centered plus icon
+                child: InkWell(
+                  onTap: (){
+                    Navigator.pushNamed(context, AppRoutes.createPlaylist,arguments: {
+                          'onPlaylistCreated': (){}
+                        });
+                  },
+                  child: Center(
+                    child: Icon(Icons.add, color: Colors.white, size: 40), // Centered plus icon
                 ),
+                )
               ),
             ),
         ],
@@ -215,7 +223,7 @@ class SongsPage extends ConsumerWidget {
             itemBuilder: (_, i) {
               return GestureDetector(
                 onTap: () {
-                  notifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath'], songs[i]['trackId']);
+                  notifier.setSong( name:  songs[i]['name'],artist:  songs[i]['artist'],image:  songs[i]['imgPath'],trackId:  songs[i]['trackId']);
                 },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 14),

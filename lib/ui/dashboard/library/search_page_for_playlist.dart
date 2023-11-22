@@ -90,6 +90,7 @@ class _SearchBarUIState extends State<SearchBarUI> {
     }
   }
 
+  
   void _onSearch() {
     String searchText = _searchController.text.trim();
     _fetchTracks(searchText);
@@ -191,7 +192,9 @@ class _SearchBarUIState extends State<SearchBarUI> {
         if (_selectedSongs.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(bottom: 20),
-            child: ElevatedButton(
+            child: Column(
+              children: [
+                ElevatedButton(
               onPressed: _onDonePressed,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
@@ -206,6 +209,11 @@ class _SearchBarUIState extends State<SearchBarUI> {
                 style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
+            mSpacer(
+              mHeight: 50.0
+            )
+              ],
+            )
           ),
       ],
     );

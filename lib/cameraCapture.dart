@@ -15,6 +15,10 @@ class VideoService {
   bool isolateInitialized = false;
   IO.Socket? socket;
 
+  final StreamController<String> _gestureController = StreamController<String>.broadcast();
+
+    Stream<String> get gestureStream => _gestureController.stream;
+
   Future<void> initializeCamera() async {
     cameras = await availableCameras();
     if (cameras!.isNotEmpty) {
@@ -31,7 +35,7 @@ class VideoService {
   }
 
   void connectSocket() {
-    socket = IO.io('http://10.16.50.117:8000/ws/socket.io/', <String, dynamic>{
+    socket = IO.io('http://192.168.120.28:8000/ws/socket.io/', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -87,17 +91,23 @@ class VideoService {
   }
 
   Future<void> _startIsolate() async {
-    receivePort = ReceivePort();
-    await Isolate.spawn(_sendFramesIsolate, receivePort!.sendPort);
+  receivePort = ReceivePort();
+  await Isolate.spawn(_sendFramesIsolate, {
+    'mainSendPort': receivePort!.sendPort,
+  });
 
-    receivePort!.listen((dynamic message) {
-      if (message is SendPort) {
-        isolateSendPort = message;
-        isolateInitialized = true;
-        print("Isolate started and ready to send frames.");
-      }
-    });
-  }
+  receivePort!.listen((dynamic message) {
+    if (message is SendPort) {
+      isolateSendPort = message;
+      isolateInitialized = true;
+      print("Isolate started and ready to send frames.");
+    } else if (message is String) {
+      print("Gesture from isolate: $message");
+      _gestureController.add(message); // Broadcast to app
+    }
+  });
+}
+
 }
 
 // Convert YUV420 to RGB
@@ -136,23 +146,33 @@ Uint8List convertYUV420toRGB(CameraImage image) {
   return Uint8List.fromList(imglib.encodeJpg(img));
 }
 
-void _sendFramesIsolate(SendPort mainSendPort) async {
+void _sendFramesIsolate(dynamic args) async {
+  final mainSendPort = args['mainSendPort'] as SendPort;
   final receivePort = ReceivePort();
-  mainSendPort.send(receivePort.sendPort);
 
-  IO.Socket? socket = IO.io('http://10.16.50.117:8000/', <String, dynamic>{
+  mainSendPort.send(receivePort.sendPort); // Send back the port to talk to isolate
+
+  IO.Socket socket = IO.io('http://192.168.120.28:8000/', <String, dynamic>{
     'transports': ['websocket'],
     'autoConnect': true,
   });
 
+  print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\ncamera Conn\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
   socket.connect();
 
   socket.onConnect((_) {
     print("Socket connected to backend.");
   });
 
-  socket!.on('gesture', (data) {
-    print('\n\n\n\nGesture received: $data\n\n\n');
+  socket.on('gesture', (data) {
+    if (data is String) {
+      print('\n\nGesture received in isolate: $data');
+      mainSendPort.send(data); // Send gesture back to main isolate
+    }
+
+
+  print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n camera data:$data \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
   });
 
   socket.onConnectError((error) {

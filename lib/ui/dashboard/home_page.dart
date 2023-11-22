@@ -11,8 +11,8 @@ import 'package:spotify_ui/ui/dashboard/songs/songs_page.dart';
 import 'package:spotify_ui/ui/dashboard/songs/widgets/music_slab.dart';
 
 class HomePage extends ConsumerWidget  {
-  const HomePage({super.key});
 
+  const HomePage({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
 
@@ -43,6 +43,8 @@ class HomePage extends ConsumerWidget  {
                   imgPath: selectedSong.imgPath,
                   trackId: selectedSong.trackId,
                   player: player,
+                  pre:'28pMkd9JEFnupyk4SnCTPn',
+                  nxt:'3h4T9Bg8OVSUYa6danHeH5'
                 ),
               ),
             )
