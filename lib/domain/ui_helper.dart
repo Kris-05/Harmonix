@@ -23,3 +23,25 @@ InputDecoration getAccountField() => InputDecoration(
     )
   ),
 );
+
+InputDecoration getTextDecoration({
+  IconData mIcon = Icons.search,
+  String mText = "Search",
+}) => InputDecoration(
+  filled: true,
+  fillColor: Colors.white,
+  contentPadding: EdgeInsets.zero,
+  prefixIcon: Icon(mIcon),
+  hintText: mText,
+  hintStyle: TextStyle(color: AppColors.greyColor),
+  enabledBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12)
+  ),
+  focusedBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: BorderSide(
+      color: AppColors.primaryColor,
+      width: 1,
+    )
+  ),
+);

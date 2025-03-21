@@ -66,6 +66,7 @@ class _CreateAccoutState extends State<CreateAccout> {
         child: Column(
           children: [
             allPages[selectedIndex],
+            // genderUI(),
             mSpacer(mHeight: 25),
             CustomButton(
               onTap: (){
@@ -122,7 +123,7 @@ class _CreateAccoutState extends State<CreateAccout> {
       Wrap(
         runAlignment: WrapAlignment.spaceBetween,
         runSpacing: 15,
-        spacing: 41,
+        spacing: 28,
         children: [
           _buildGenderButton(1, "Male"),
           _buildGenderButton(2, "Female"),
