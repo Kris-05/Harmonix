@@ -7,6 +7,9 @@ gradle-wrapper.jar
 GeneratedPluginRegistrant.java
 .cxx/
 
+/backend/__pycache__
+/backend/app/__pycache__
+/backend/app/*/__pycache__
 # Remember to never publicly share your keystore.
 # See https://flutter.dev/to/reference-keystore
 key.properties

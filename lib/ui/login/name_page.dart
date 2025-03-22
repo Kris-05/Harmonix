@@ -24,6 +24,7 @@ class _NamePageState extends State<NamePage> {
   late String email;
   late String password;
   late String gender;
+  late List<String> languages;
 
   TextEditingController name=TextEditingController();
   // Checkbox selection
@@ -41,6 +42,7 @@ class _NamePageState extends State<NamePage> {
     email = args?['email'] ?? 'N/A';
     password = args?['password'] ?? 'N/A';
     gender = args?['gender'] ?? 'N/A';
+    languages=args?['languages'] ?? [];
   }
 
   @override
@@ -85,7 +87,7 @@ class _NamePageState extends State<NamePage> {
                 if(isOneSelected && isTwoSelected){
                   // Calling the Create Account function.. 
                   try{
-                    final res=await Auth.createAccountApi(email:email, password:password, gender:gender, name:name.text);
+                    final res=await Auth.createAccountApi(email:email, password:password, gender:gender, name:name.text,languages:languages);
                     print(res);
                   }
                   catch(err){
