@@ -1,7 +1,14 @@
+
 import 'package:flutter/material.dart';
 import 'package:spotify_ui/domain/app_routes.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+
+// Yov Krishnaa Olungaa Comment pannu daaa
+// Oru Mairum Purila....
+
+void main() async {
+   await dotenv.load(fileName: "lib/.env");
   runApp(const MyApp());
 }
 
@@ -12,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Harmonix',
       theme: ThemeData(
         fontFamily: 'Poppins',
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),

@@ -9,17 +9,20 @@ Widget mSpacer({
   width: mHeight,
 );
 
-InputDecoration getAccountField() => InputDecoration(
-  filled: true,
-  fillColor: AppColors.greyColor,
-  enabledBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12)
-  ),
-  focusedBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12),
-    borderSide: BorderSide(
-      color: AppColors.primaryColor,
-      width: 1,
-    )
-  ),
-);
+InputDecoration getAccountField({bool hasError = false}) => InputDecoration(
+      filled: true,
+      fillColor: AppColors.greyColor,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: hasError ? Colors.red : AppColors.greyColor,
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: hasError ? Colors.red : AppColors.primaryColor,
+          width: 1,
+        ),
+      ),
+    );

@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
 import 'package:spotify_ui/ui/custom_widgets/custom_button.dart';
+import 'package:spotify_ui/api/auth.dart';
+
 
 class NamePage extends StatefulWidget {
   const NamePage({super.key});
@@ -13,8 +17,31 @@ class NamePage extends StatefulWidget {
 
 class _NamePageState extends State<NamePage> {
 
-  bool isOneSelected  = false;
-  bool isTwoSelected  = false;
+
+  // Variables to store arguments from the Gender
+  // We can call Backend from thiss PAge...
+  // late=> not Null but Later Check..
+  late String email;
+  late String password;
+  late String gender;
+
+  TextEditingController name=TextEditingController();
+  // Checkbox selection
+  bool isOneSelected = false;
+  bool isTwoSelected = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Get arguments passed from the previous page
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    // Assign arguments to variables safely with fallback values
+    email = args?['email'] ?? 'N/A';
+    password = args?['password'] ?? 'N/A';
+    gender = args?['gender'] ?? 'N/A';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,14 +50,17 @@ class _NamePageState extends State<NamePage> {
       appBar: AppBar(
         backgroundColor: AppColors.blackColor,
         centerTitle: true,
-        title: Text("Create Account", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Create Account",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         leading: InkWell(
-          onTap: (){
+          onTap: () {
             Navigator.pop(context);
           },
           child: Padding(
             padding: const EdgeInsets.all(14),
-            child: SvgPicture.asset("assets/svg/Left.svg",  color: Colors.white),
+            child: SvgPicture.asset("assets/svg/Left.svg", color: Colors.white),
           ),
         ),
       ),
@@ -38,113 +68,157 @@ class _NamePageState extends State<NamePage> {
         padding: const EdgeInsets.all(14),
         child: Column(
           children: [
-            nameUI(),
+            // Wrap nameUI in Expanded to avoid overflow
+            Expanded(child: nameUI()),
             mSpacer(mHeight: 25),
+            // Button to Create Account
             CustomButton(
-              onTap: (){
-                
-              }, 
+              onTap: () async {
+
+                // Summa Priting...
+                print("Email: $email");
+                print("Password: $password");
+                print("Gender: $gender");
+                print("Send News: $isOneSelected");
+                print("Share Data: $isTwoSelected");
+
+                if(isOneSelected && isTwoSelected){
+                  // Calling the Create Account function.. 
+                  try{
+                    final res=await Auth.createAccountApi(email:email, password:password, gender:gender, name:name.text);
+                    print(res);
+                  }
+                  catch(err){
+                    print(err);
+                  }
+                }
+                // Navigate or perform actions after account creation
+
+              },
               text: "Create Account",
               bgColor: AppColors.whiteColor,
               mWidth: 200,
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget nameUI() => Expanded(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(" What's your name", style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-          fontSize: 25,
-        )),
-        mSpacer(mHeight: 4, mWidth: 8),
-        TextField(
-          style: TextStyle(color: Colors.white),
-          cursorColor: Colors.white,
-          decoration: getAccountField(),
-        ),
-        mSpacer(mHeight: 4, mWidth: 8),
-        Text(" This will appear on your profile", style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-          fontSize: 10,
-        )),
-        mSpacer(),
-        Divider(color: AppColors.greyColor, height: 1,),
-        mSpacer(mHeight: 21),
-        Text("By tapping on “Create account”, you agree to the Harmonix Terms of Use.", style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-          fontSize: 11,
-        )),
-        mSpacer(mHeight: 21),
-        Text("Terms of Use.", style: TextStyle(
-          color: AppColors.primaryColor,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        )),
-        mSpacer(mHeight: 21),
-        Text("To learn more about how Harmonix collect, uses, shares and protects your personal data, Please see the Harmonix Privacy Policy.", style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-          fontSize: 11,
-        )),
-        mSpacer(mHeight: 21),
-        Text("Privacy Policy", style: TextStyle(
-          color: AppColors.primaryColor,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        )),
-        mSpacer(mHeight: 21),
-        Material(
-          color: Colors.transparent,
-          child: CheckboxListTile(
-            controlAffinity: ListTileControlAffinity.trailing,
-            title: Text(
-              "Please send me news and offers from Spotify.",
+  // Name Input UI
+  Widget nameUI() => SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "What's your name",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 25,
+              ),
+            ),
+            mSpacer(mHeight: 4, mWidth: 8),
+            // Name Input Field
+            TextField(
+              controller: name,
+              style: const TextStyle(color: Colors.white),
+              cursorColor: Colors.white,
+              decoration: getAccountField(),
+            ),
+            mSpacer(mHeight: 4, mWidth: 8),
+            const Text(
+              "This will appear on your profile",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
                 fontSize: 10,
               ),
             ),
-            value: isOneSelected, 
-            onChanged: (val) {
-              setState(() {
-                isOneSelected = val!;
-              });
-            },
-            activeColor: AppColors.primaryColor,
-          ),
-        ),
-        Material(
-          color: Colors.transparent,
-          child: CheckboxListTile(
-            controlAffinity: ListTileControlAffinity.trailing,
-            title: Text(
-              "Share my registration data with Harmonix's content providers for marketing purposes.",
+            mSpacer(),
+            const Divider(color: AppColors.greyColor, height: 1),
+            mSpacer(mHeight: 21),
+            const Text(
+              "By tapping on “Create account”, you agree to the Harmonix Terms of Use.",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
-                fontSize: 10,
+                fontSize: 11,
               ),
             ),
-            value: isTwoSelected,
-            onChanged: (val) {
-              setState(() {
-                isTwoSelected = val!;
-              });
-            },
-            activeColor: AppColors.primaryColor,
-          ),
+            mSpacer(mHeight: 21),
+            const Text(
+              "Terms of Use.",
+              style: TextStyle(
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+            mSpacer(mHeight: 21),
+            const Text(
+              "To learn more about how Harmonix collects, uses, shares and protects your personal data, please see the Harmonix Privacy Policy.",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 11,
+              ),
+            ),
+            mSpacer(mHeight: 21),
+            const Text(
+              "Privacy Policy",
+              style: TextStyle(
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+            mSpacer(mHeight: 21),
+            // Checkbox for News and Offers
+            Material(
+              color: Colors.transparent,
+              child: CheckboxListTile(
+                controlAffinity: ListTileControlAffinity.trailing,
+                title: const Text(
+                  "Please send me news and offers from Spotify.",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 10,
+                  ),
+                ),
+                value: isOneSelected,
+                onChanged: (val) {
+                  setState(() {
+                    isOneSelected = val!;
+                  });
+                },
+                activeColor: AppColors.primaryColor,
+              ),
+            ),
+            // Checkbox for Sharing Registration Data
+            Material(
+              color: Colors.transparent,
+              child: CheckboxListTile(
+                controlAffinity: ListTileControlAffinity.trailing,
+                title: const Text(
+                  "Share my registration data with Harmonix's content providers for marketing purposes.",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 10,
+                  ),
+                ),
+                value: isTwoSelected,
+                onChanged: (val) {
+                  setState(() {
+                    isTwoSelected = val!;
+                  });
+                },
+                activeColor: AppColors.primaryColor,
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 }

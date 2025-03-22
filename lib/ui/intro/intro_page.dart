@@ -93,7 +93,9 @@ class IntroPage extends StatelessWidget {
           ),
           mSpacer(),
       
-          TextButton(onPressed: (){}, child: Text("Login", style: TextStyle(
+          TextButton(onPressed: (){
+            Navigator.pushNamed(context, AppRoutes.loginPage);
+          }, child: Text("Login", style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 16,

@@ -1,27 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:spotify_ui/api/auth.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
-import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
 import 'package:spotify_ui/ui/custom_widgets/custom_button.dart';
 
-
-// Yov Krisnaa Olungaa Comment pannu daaa
-// Oru Mairum Purila....
-
-class CreateAccout extends StatefulWidget {
-  const CreateAccout({super.key});
+class Login extends StatefulWidget {
+  const Login({super.key});
 
   @override
-  State<CreateAccout> createState() => _CreateAccoutState();
+  State<Login> createState() => _LoginState();
 }
 
-class _CreateAccoutState extends State<CreateAccout> {
-  // Track the current page (email, password, gender)
-  int selectedIndex = 0;
+class _LoginState extends State<Login> {
 
-  // Selected gender for later submission
-  int? selectedGender;
 
   // Controllers for text fields
   TextEditingController emailController = TextEditingController();
@@ -31,17 +23,20 @@ class _CreateAccoutState extends State<CreateAccout> {
   String? emailError;
   String? passwordError;
 
+  // this is For Login Page..
+  // Consisit of Email Page and PassWord Page..
+
+  // This Is for the Index Mapping...
+  int selectedIndex=0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.blackColor,
       appBar: AppBar(
+        title: const Text("Login",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
         backgroundColor: AppColors.blackColor,
         centerTitle: true,
-        title: const Text(
-          "Create Account",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
         leading: InkWell(
           onTap: () {
             // Go to the previous page if possible
@@ -60,19 +55,18 @@ class _CreateAccoutState extends State<CreateAccout> {
               color: Colors.white,
             ),
           ),
-        ),
+        )
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          children: [
-            // Get the current page dynamically
+      body: Padding(padding:  const EdgeInsets.all(14),  //Body Of the login Page...
+      child: Column(
+        children: [
+          // Get the current page dynamically
             getPage(),
             mSpacer(mHeight: 25),
 
             // Next button to navigate through pages
             CustomButton(
-              onTap: () {
+              onTap: () async {
                 // Validate email on the first page
                 if (selectedIndex == 0) {
                   if (!_isValidEmail(emailController.text)) {
@@ -80,55 +74,39 @@ class _CreateAccoutState extends State<CreateAccout> {
                       emailError = "Please enter a valid email";
                     });
                     return;
-                  } else {
+                  } 
+                  }else {
+                    print("Pressed Submit ,, Gonna Call Api");
+                    try{
+                    final res=await Auth.loginApi(email:emailController.text, password:passController.text );
+                    print("Login Successs");
+                    print(res);
+                  }
+                  catch(err){
                     setState(() {
-                      emailError = null; // Clear error if valid
+                      passwordError="Error in Logging In";
                     });
                   }
-                }
+                 }
+                
 
                 // Validate password on the second page
                 if (selectedIndex == 1) {
                   if (!_isValidPassword(passController.text)) {
                     setState(() {
-                      passwordError = "Password must be at least 8 characters";
+                      passwordError = "UR Password is at least 8 characters";
                     });
                     return;
-                  } else {
-                    setState(() {
-                      passwordError = null; // Clear error if valid
-                    });
-                  }
+                  } 
                 }
+              
 
                 // Move to the next page if validation passes
-                if (selectedIndex < 3) {
+                if (selectedIndex < 2) {
                   setState(() {
                     selectedIndex++;
                   });
-                } else {
-                  // Collect final data and proceed to the next page
-                  String email = emailController.text;
-                  String password = passController.text;
-                  String gender = getGenderText(selectedGender);
-
-                  // Debug print to verify data
-                  print("Final Email: $email");
-                  print("Final Password: $password");
-                  print("Selected Gender: $gender");
-
-                  // Navigate to the next page with data...
-                  // sending Values to the Name Page...
-                  Navigator.pushNamed(
-                    context,
-                    AppRoutes.namePage,
-                    arguments: {
-                      'email': email,
-                      'password': password,
-                      'gender': gender,
-                    },
-                  );
-                }
+                } 
               },
               text: "Next",
               bgColor: AppColors.whiteColor,
@@ -141,28 +119,24 @@ class _CreateAccoutState extends State<CreateAccout> {
   }
 
   // Returns the correct page based on selectedIndex
-  Widget getPage() {
+  Widget getPage(){
     if (selectedIndex == 0) {
       return wholeUI(
-        title: "What's your email",
+        title: "Enter your email",
         desc: "You'll need to confirm this email later",
         controller: emailController,
         isPass: false,
         err: emailError,
       );
-    } else if (selectedIndex == 1) {
+    } else  {
       return wholeUI(
-        title: "Create a password",
-        desc: "Use at least 8 characters",
+        title: "Enter password",
+        desc: "Use Your PassWord",
         controller: passController,
         isPass: true,
         err: passwordError,
       );
-    } else if(selectedIndex==2) {
-      return genderUI();
-    }else{
-      return genderUI();
-    }
+    } 
   }
 
   // UI for Email and Password fields with error handling
@@ -210,8 +184,9 @@ class _CreateAccoutState extends State<CreateAccout> {
             ),
 
           mSpacer(mHeight: 4, mWidth: 8),
-
-          // Description below the field
+    
+    
+          
           Text(
             desc,
             style: const TextStyle(
@@ -223,67 +198,8 @@ class _CreateAccoutState extends State<CreateAccout> {
         ],
       );
 
-  // UI for Gender selection
-  Widget genderUI() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "What's your gender",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 25,
-            ),
-          ),
-          mSpacer(),
-          Wrap(
-            runAlignment: WrapAlignment.spaceBetween,
-            runSpacing: 15,
-            spacing: 41,
-            children: [
-              _buildGenderButton(1, "Male"),
-              _buildGenderButton(2, "Female"),
-              _buildGenderButton(3, "Others"),
-              _buildGenderButton(4, "Not prefer to say"),
-            ],
-          ),
-        ],
-      );
-
-  // Create buttons for gender selection
-  Widget _buildGenderButton(int value, String text) {
-    return CustomButton(
-      mWidth: value == 4 ? 150 : 100,
-      mHeight: 36,
-      onTap: () {
-        setState(() {
-          selectedGender = value;
-        });
-      },
-      text: text,
-      textColor: Colors.white,
-      bgColor: AppColors.primaryColor,
-      isOutlined: true,
-      isSelected: selectedGender == value,
-    );
-  }
 }
 
-// Get gender as text based on selected value
-String getGenderText(int? value) {
-  switch (value) {
-    case 1:
-      return "Male";
-    case 2:
-      return "Female";
-    case 3:
-      return "Others";
-    case 4:
-      return "Not prefer to say";
-    default:
-      return "Not selected";
-  }
-}
 
 // Validate email format using regex
 bool _isValidEmail(String email) {

@@ -3,17 +3,22 @@ import 'package:spotify_ui/ui/intro/intro_page.dart';
 import 'package:spotify_ui/ui/login/create_accout.dart';
 import 'package:spotify_ui/ui/login/name_page.dart';
 import 'package:spotify_ui/ui/splash/splash_page.dart';
+import 'package:spotify_ui/ui/login/login.dart';
 
 class AppRoutes {
+  // These are the Routes...
   static const String splashPage = "/";
   static const String introPage = "/intro";
   static const String createAccountPage = "/create_account";
   static const String namePage = "create_account/name";
+  static const String loginPage='/login';
 
+// This Mapping Routing.....
   static Map<String, Widget Function(BuildContext)> getRoutes () => {
     splashPage: (context) => SplashPage(),
     introPage: (context) => IntroPage(),
     createAccountPage: (context) => CreateAccout(),
     namePage: (context) => NamePage(),
+    loginPage:(context)=>Login()
   };
 }
