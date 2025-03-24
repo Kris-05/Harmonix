@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
-import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
 import 'package:spotify_ui/ui/custom_widgets/circular_img.dart';
 import 'package:spotify_ui/ui/custom_widgets/custom_button.dart';
+import 'package:spotify_ui/ui/dashboard/home_page.dart';
 
 // ignore: must_be_immutable
 class ChooseArtist extends StatefulWidget {
@@ -205,7 +205,8 @@ class _ChooseArtistState extends State<ChooseArtist> {
   Widget nxtButton() => Center(
     child: CustomButton(
       onTap: (){
-        Navigator.pushNamed(context, AppRoutes.homePage);
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()));
+        // Navigator.pushNamed(context, AppRoutes.homePage);
       }, 
       text: "Next",
       bgColor: AppColors.whiteColor,

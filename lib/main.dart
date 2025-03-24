@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -23,6 +24,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'Poppins',
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: AppColors.blackColor,
+          selectedItemColor: Colors.green, // Active tab color
+          unselectedItemColor: Colors.grey,
+          selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold), // Active text style
+          unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
+        )
       ),
       routes: AppRoutes.getRoutes(),
       initialRoute: AppRoutes.splashPage,
