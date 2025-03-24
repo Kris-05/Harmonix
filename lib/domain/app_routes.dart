@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'package:spotify_ui/ui/intro/choose_artist.dart';
-import 'package:spotify_ui/ui/intro/home_page.dart';
+import 'package:spotify_ui/ui/login/choose_artist.dart';
+import 'package:spotify_ui/ui/dashboard/home_page.dart';
 import 'package:spotify_ui/ui/intro/intro_page.dart';
 import 'package:spotify_ui/ui/login/create_accout.dart';
 import 'package:spotify_ui/ui/login/name_page.dart';
