@@ -2,47 +2,66 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
+import 'package:spotify_ui/ui/dashboard/songs/widgets/music_slab.dart';
 
-class SongsPage extends StatelessWidget {
-  SongsPage({super.key});
+class SongsPage extends StatefulWidget {
+  final Function(Map<String, dynamic>) onSongSelected;
 
+  const SongsPage({super.key, required this.onSongSelected});
+
+  @override
+  State<SongsPage> createState() => _SongsPageState();
+}
+
+class _SongsPageState extends State<SongsPage> {
+  
   final List<Map<String, dynamic>> mRecentPlayedList = [
     {
       "imgPath": "assets/images/Afterburner.png",
-      "name": "1(Remastered)"
+      "name": "One - Metallica",
+      "artist": "1(Remastered)"
     },
     {
       "imgPath": "assets/images/Anthem.png",
-      "name": "Lana Del Rey"
+      "name": "Summertime Sadness",
+      "artist": "Lana Del Rey"
     },
     {
       "imgPath": "assets/images/Artists.png",
-      "name": "Marvin Gaye"
+      "name": "Let's Get It On",
+      "artist": "Marvin Gaye"
     },
     {
       "imgPath": "assets/images/Bryce_Vine.png",
-      "name": "Indie Pop"
+      "name": "Drew Barrymore",
+      "artist": "Indie Pop"
     },
   ];
 
   final List<Map<String, dynamic>> mEditorPicksList = [
     {
       "imgPath": "assets/images/Afterburner.png",
-      "name": "Ed Sheeran"
+      "name": "Shape of You",
+      "artist": "Ed Sheeran"
     },
     {
       "imgPath": "assets/images/Anthem.png",
-      "name": "Post Malone"
+      "name": "Circles",
+      "artist": "Post Malone"
     },
     {
       "imgPath": "assets/images/Artists.png",
-      "name": "Big Sean"
+      "name": "I Don't Fuck With You",
+      "artist": "Big Sean"
     },
     {
       "imgPath": "assets/images/Bryce_Vine.png",
-      "name": "Glass Animals"
+      "name": "Heat Waves",
+      "artist": "Glass Animals"
     },
   ];
+
+  Map<String, dynamic>? selectedSong;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +77,12 @@ class SongsPage extends StatelessWidget {
             playListUI(),
             mSpacer(mHeight: 20),
             editorPicksUI(),
+            if(selectedSong != null)
+              MusicSlab(
+                songName: selectedSong!['name'],
+                artistName: selectedSong!['artist'],
+                imgPath: selectedSong!['imgPath']
+              )
           ],
         ),
       ),
@@ -94,14 +119,19 @@ class SongsPage extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         itemCount: mRecentPlayedList.length,
         itemBuilder: (_, i) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Column(
-              children: [
-                Image.asset(mRecentPlayedList[i]['imgPath'], width: 100, height: 100),
-                mSpacer(),
-                Text(mRecentPlayedList[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12),),
-              ],
+          return GestureDetector(
+            onTap: (){
+              widget.onSongSelected(mRecentPlayedList[i]); // send song to home Page
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Column(
+                children: [
+                  Image.asset(mRecentPlayedList[i]['imgPath'], width: 100, height: 100),
+                  mSpacer(),
+                  Text(mRecentPlayedList[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12),),
+                ],
+              ),
             ),
           );
         }
@@ -152,14 +182,21 @@ class SongsPage extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: mEditorPicksList.length,
             itemBuilder: (_, i) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Column(
-                  children: [
-                    Image.asset(mEditorPicksList[i]['imgPath'], width: 100, height: 100),
-                    mSpacer(),
-                    Text(mEditorPicksList[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12),),
-                  ],
+              return GestureDetector(
+                onTap: (){
+                  setState(() {
+                    widget.onSongSelected(mEditorPicksList[i]); // send song to home Page
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Column(
+                    children: [
+                      Image.asset(mEditorPicksList[i]['imgPath'], width: 100, height: 100),
+                      mSpacer(),
+                      Text(mEditorPicksList[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12),),
+                    ],
+                  ),
                 ),
               );
             }
@@ -168,5 +205,4 @@ class SongsPage extends StatelessWidget {
       ],
     );
   }
-
 }

@@ -1,16 +1,20 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/app_routes.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 
 // Yov Krishnaa Olungaa Comment pannu daaa
 // Oru Mairum Purila....
 
-void main() async {
-   await dotenv.load(fileName: "lib/.env");
-  runApp(const MyApp());
+// void main() async {
+//    await dotenv.load(fileName: "lib/.env");
+//   runApp(const MyApp());
+// }
+
+void main() {
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {

@@ -45,17 +45,16 @@ class IntroPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center, 
         children: [
-      
           SvgPicture.asset("assets/logo/Logo.svg", width: 50, height: 50),
           mSpacer(),
-          Text("Millions of Songs \n Free on Spotify", style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 25,
+          Text("Millions of Songs \n Free on Spotify", 
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 25,
+            ),
+            textAlign: TextAlign.center,
           ),
-          textAlign: TextAlign.center,
-          ),
-      
           mSpacer(),
           CustomButton(
             text: "Sign Up Free",
@@ -89,10 +88,11 @@ class IntroPage extends StatelessWidget {
             text: "Continue with Apple",
             textColor: Colors.white,
             bgColor: AppColors.primaryColor,
-            onTap: (){}
+            onTap: (){
+              Navigator.pushNamed(context, AppRoutes.homePage);
+            }
           ),
           mSpacer(),
-      
           TextButton(onPressed: (){
             Navigator.pushNamed(context, AppRoutes.loginPage);
           }, child: Text("Login", style: TextStyle(

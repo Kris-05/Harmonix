@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
   http: ^1.2.1
   flutter_dotenv: ^5.1.0
+  flutter_riverpod: ^2.4.9
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -64,7 +65,7 @@ flutter:
     - assets/images/
     - assets/logo/
     - assets/svg/
-    - lib/.env
+    # - lib/.env
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
