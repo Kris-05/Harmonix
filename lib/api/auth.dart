@@ -46,6 +46,7 @@ class Auth{
           try{
 
             print("Login Route Called....");
+            
             final res= await http.post(
               Uri.parse("$url/login"),
               headers: {
@@ -59,7 +60,7 @@ class Auth{
           
             print(res.statusCode);
             if (res.statusCode == 200) {
-              print("Account created successfully: ${res.body}");
+              print("Account Logged In successfully: ${res.body}");
               return jsonDecode(res.body);
             } else {
               print("Error: ${res.body}");

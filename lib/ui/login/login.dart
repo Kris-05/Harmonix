@@ -76,6 +76,15 @@ class _LoginState extends State<Login> {
                     return;
                   } 
                   }else {
+
+                    if(passController.text.length<8){
+                      setState(() {
+                        passwordError="It Must Be Atleast 8 Chars";
+                        return;
+                      });
+                    }
+
+
                     print("Pressed Submit ,, Gonna Call Api");
                     try{
                     final res=await Auth.loginApi(email:emailController.text, password:passController.text );
@@ -87,6 +96,8 @@ class _LoginState extends State<Login> {
                       passwordError="Error in Logging In";
                     });
                   }
+
+
                  }
                 
 
