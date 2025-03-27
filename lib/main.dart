@@ -11,7 +11,6 @@ void main() async {
   await dotenv.load(fileName: "lib/.env");
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ Initialize the VideoService properly
   VideoService videoService = VideoService();
   await videoService.initializeCamera(); // Initialize before running app
 
