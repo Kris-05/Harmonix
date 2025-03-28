@@ -89,7 +89,9 @@ class _IntroPageState extends State<IntroPage> {
               text: "Continue with Facebook",
               textColor: Colors.white,
               bgColor: AppColors.primaryColor,
-              onTap: () {},
+              onTap: (){
+              Navigator.pushNamed(context, AppRoutes.homePage);
+            }
             ),
             mSpacer(),
             //  Trigger Camera with Apple Button

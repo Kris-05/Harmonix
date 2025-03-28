@@ -4,6 +4,7 @@ import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/ui/dashboard/library/library_page.dart';
 import 'package:spotify_ui/ui/dashboard/search/search_page.dart';
 import 'package:spotify_ui/ui/dashboard/songs/songs_page.dart';
+import 'package:spotify_ui/ui/dashboard/songs/widgets/music_slab.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,18 +16,45 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
 
   int selectedIndex = 0;
+  Map<String, dynamic>? selectedSong; // store selected song
+  late List<Widget> pages ; // pages list
 
-  final pages = [
-    SongsPage(),
-    const SearchPage(),
-    const LibraryPage(),
-  ];
+  @override
+  void initState(){
+    super.initState();
+     pages = [
+      SongsPage(onSongSelected: updateSelectedSong),
+      const SearchPage(),
+      const LibraryPage(),
+    ];
+  }
+
+  void updateSelectedSong(Map<String, dynamic> song){
+    setState(() {
+      selectedSong = song;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.blackColor,
-      body: pages[selectedIndex],
+      body: Stack(
+        children: [
+          pages[selectedIndex],
+          if(selectedSong != null)
+            Positioned.fill(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: MusicSlab(
+                  songName: selectedSong!['name'], 
+                  artistName: selectedSong!['artist'],
+                  imgPath: selectedSong!['imgPath'],
+                ),
+              ),
+            )
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
         onTap: (i) {

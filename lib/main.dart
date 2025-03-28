@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:spotify_ui/cameraCapture.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -14,7 +16,7 @@ void main() async {
   VideoService videoService = VideoService();
   await videoService.initializeCamera(); // Initialize before running app
 
-  runApp(MyApp(videoService: videoService));
+  runApp(const ProviderScope(child:MyApp(videoService: videoService)));
 }
 
 class MyApp extends StatelessWidget {

@@ -134,7 +134,7 @@ class _CreateAccoutState extends State<CreateAccout> {
               },
               text: selectedIndex == 2 ? "Create Account" : "Next",
               bgColor: AppColors.whiteColor,
-               mWidth: double.infinity
+              mWidth: selectedIndex == 2 ? 200 : 100,
             )
           ],
         ),

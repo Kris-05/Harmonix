@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:spotify_ui/ui/dashboard/songs/widgets/music_player.dart';
 import 'package:spotify_ui/ui/login/choose_artist.dart';
 import 'package:spotify_ui/ui/dashboard/home_page.dart';
 import 'package:spotify_ui/ui/intro/intro_page.dart';
@@ -17,6 +18,7 @@ class AppRoutes {
   static const String loginPage = '/login';
   static const String artistPage = "/choose_artist";
   static const String homePage = "/home";
+  static const String songsPage = "/songs";
 
   // This Mapping Routing.....
   static Map<String, Widget Function(BuildContext)> getRoutes(VideoService videoService) => {
@@ -27,5 +29,6 @@ class AppRoutes {
         loginPage: (context) => Login(),
         artistPage: (context) => ChooseArtist(),
         homePage: (context) => HomePage(),
-      };
+        songsPage: (context) => MusicPlayer(),
+  };
 }
