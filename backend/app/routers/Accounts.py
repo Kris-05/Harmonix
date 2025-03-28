@@ -16,8 +16,7 @@ async def createAccount(user: UserModel):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Account creation failed"
             )
-        
-        # Set the new user's ID and return the response
+
         user.id = user_id
         return user
 
@@ -32,7 +31,7 @@ async def createAccount(user: UserModel):
 
 
 # Login User Route
-@router.post("/login") 
+@router.post("/login")
 async def loginUser(login_data: LoginModel):
     email=login_data.email
     password=login_data.password
