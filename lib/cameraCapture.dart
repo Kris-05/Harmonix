@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:isolate';
+import 'dart:typed_data';
 import 'package:camera/camera.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:image/image.dart' as img;
+import 'package:flutter/foundation.dart';
+import 'package:image/image.dart' as imglib;
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class VideoService {
   CameraController? _cameraController;
@@ -13,24 +13,45 @@ class VideoService {
   SendPort? isolateSendPort;
   ReceivePort? receivePort;
   bool isolateInitialized = false;
+  IO.Socket? socket;
 
-  // Initialize Camera
+
   Future<void> initializeCamera() async {
     cameras = await availableCameras();
     if (cameras!.isNotEmpty) {
       _cameraController = CameraController(
-        cameras![0], // Back Camera
-        ResolutionPreset.low, // Low resolution to reduce lag
+        cameras![1], // Front camera
+        ResolutionPreset.medium,
+        enableAudio: false,
       );
-
       await _cameraController!.initialize();
-      print("Camera Initialized.");
+      print("Camera Initialized: ${_cameraController!.value.previewSize}");
     } else {
       print("No camera available.");
     }
   }
 
-  // Start Sending Frames with Image Stream
+
+  void connectSocket() {
+    socket = IO.io('http://192.168.254.28:8000/ws/socket.io/', <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': false,
+    });
+
+    socket!.connect();
+
+    socket!.onConnect((_) {
+      print(" WebSocket connected");
+    });
+
+    socket!.onDisconnect((_) => print(" WebSocket disconnected"));
+
+    socket!.onError((error) {
+      print(" WebSocket connection error: $error");
+    });
+  }
+
+
   Future<void> startSendingFrames() async {
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
       print("Camera not initialized.");
@@ -43,134 +64,130 @@ class VideoService {
     }
 
     isSendingFrames = true;
-    print("Sending frames started...");
+    print(" Sending frames started...");
 
-    // Start isolate only once
     if (!isolateInitialized) {
       await _startIsolate();
     }
 
-    // Start image stream and send frames to isolate
     _cameraController!.startImageStream((CameraImage image) {
       if (isSendingFrames) {
-        String frameData = _convertYUV420toBase64(image);
-        isolateSendPort?.send(frameData);
+        isolateSendPort?.send(image);
       }
     });
   }
 
-  // Stop Sending Frames
   Future<void> stopSendingFrames() async {
     if (!isSendingFrames) {
-      print("No frame sending in progress.");
+      print(" No frame sending in progress.");
       return;
     }
 
     isSendingFrames = false;
-    _cameraController?.stopImageStream(); // Stop the image stream
+    _cameraController?.stopImageStream();
     isolateSendPort?.send('stop');
-    print("Frame sending stopped.");
+    print(" Frame sending stopped.");
   }
 
-  // Start Isolate for Frame Sending
+
   Future<void> _startIsolate() async {
     receivePort = ReceivePort();
     await Isolate.spawn(_sendFramesIsolate, receivePort!.sendPort);
 
-    // Wait for the isolate to send its SendPort back
-    isolateSendPort = await receivePort!.first as SendPort;
-    isolateInitialized = true;
-    print("Isolate started and ready to send frames.");
-  }
-
-  // Convert Camera Frame (YUV420) to Base64 PNG
-  String _convertYUV420toBase64(CameraImage image) {
-    try {
-      final int width = image.width;
-      final int height = image.height;
-
-      // Create an empty RGB image
-      final img.Image rgbImage = img.Image(width: width, height: height);
-
-      // Convert YUV420 to RGB manually
-      for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-          final int uvIndex = (y >> 1) * width + (x & ~1);
-          final int yValue = image.planes[0].bytes[y * width + x];
-          final int uValue = image.planes[1].bytes[uvIndex];
-          final int vValue = image.planes[2].bytes[uvIndex];
-
-          // Convert YUV to RGB
-          int r = (yValue + 1.402 * (vValue - 128)).toInt();
-          int g = (yValue - 0.344 * (uValue - 128) - 0.714 * (vValue - 128)).toInt();
-          int b = (yValue + 1.772 * (uValue - 128)).toInt();
-
-          // Clamp values to valid range
-          r = r.clamp(0, 255);
-          g = g.clamp(0, 255);
-          b = b.clamp(0, 255);
-
-          // Set pixel with alpha (default to 255)
-          rgbImage.setPixelRgba(x, y, r, g, b, 255);
-        }
+    receivePort!.listen((dynamic message) {
+      if (message is SendPort) {
+        isolateSendPort = message;
+        isolateInitialized = true;
+        print(" Isolate started and ready to send frames.");
       }
-
-      // Encode image as PNG and convert to Base64
-      List<int> pngBytes = img.encodePng(rgbImage);
-      String base64Image = base64Encode(pngBytes);
-      return base64Image;
-    } catch (e) {
-      print("Error converting YUV to Base64: $e");
-      return "";
-    }
+    });
   }
 }
 
-// Send Frame to FastAPI Backend
-Future<void> _sendFrameToAPI(String frameData) async {
-  final String apiUrl = "http://192.168.137.117:8000/sendFrames";
 
-  try {
-    if (frameData.isEmpty) {
-      print("Empty frame. Skipping...");
-      return;
+Uint8List convertYUV420toRGB(CameraImage image) {
+  final int width = image.width;
+  final int height = image.height;
+
+  final Plane yPlane = image.planes[0];
+  final Plane uPlane = image.planes[1];
+  final Plane vPlane = image.planes[2];
+
+  final int uvRowStride = uPlane.bytesPerRow;
+  final int uvPixelStride = uPlane.bytesPerPixel!;
+
+  final imglib.Image img = imglib.Image(width: width, height: height);
+
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      final int yIndex = y * yPlane.bytesPerRow + x;
+      final int uvIndex = (y ~/ 2) * uvRowStride + (x ~/ 2) * uvPixelStride;
+
+      final int yp = yPlane.bytes[yIndex];
+      final int up = uPlane.bytes[uvIndex];
+      final int vp = vPlane.bytes[uvIndex];
+
+      // Convert YUV to RGB
+      int r = (yp + vp * 1.402 - 179).round().clamp(0, 255);
+      int g = (yp - 0.344136 * (up - 128) - 0.714136 * (vp - 128))
+          .round()
+          .clamp(0, 255);
+      int b = (yp + 1.772 * (up - 128)).round().clamp(0, 255);
+
+      img.setPixelRgba(x, y, r, g, b, 255);
     }
-
-    print("Sending frame to API...");
-    var response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"frame": frameData}),
-    );
-
-    if (response.statusCode == 200) {
-      var data = jsonDecode(response.body);
-      print("Gesture Prediction: ${data['gesture']}");
-    } else {
-      print("API Error: ${response.statusCode}");
-    }
-  } catch (e) {
-    print("Error sending frame to API: $e");
   }
+
+  return Uint8List.fromList(imglib.encodeJpg(img));
 }
 
-// Isolate for Frame Processing and API Sending
 void _sendFramesIsolate(SendPort mainSendPort) async {
   final receivePort = ReceivePort();
   mainSendPort.send(receivePort.sendPort);
 
-  bool keepSending = true;
+  IO.Socket? socket;
+
+  socket = IO.io('http://192.168.254.28:8000/', <String, dynamic>{
+    'transports': ['websocket'],
+    'autoConnect': true,
+  });
+
+  socket.connect();
+
+    socket.onConnect((_) {
+    print(" Socket Concected to Back..");
+  });
+
+  socket.onConnectError((error) {
+    print("  Error: $error");
+  });
+
+  socket.onError((error) {
+    print(" IO Error: $error");
+  });
+
+  socket!.onDisconnect((_) {
+    print(" Disconnected from Socket!!..");
+  });
+    
+
 
   receivePort.listen((dynamic message) async {
     if (message == 'stop') {
-      keepSending = false;
-      print("Isolate stopping...");
-    } else if (message is String) {
-      await _sendFrameToAPI(message);
+      print(" Isolated Thread stopping...");
+    } else if (message is CameraImage) {
+      final Uint8List rgbBytes = convertYUV420toRGB(message);
+      if (rgbBytes.isNotEmpty) {
+        print(socket);
+        if (socket != null && socket.connected) {
+          socket.emit('frame', rgbBytes); // Emit frames
+          print(" Frame sent through WebSocket");
+        } else {
+          print(" WebSocket not connected.");
+        }
+      } else {
+        print(" Skipping frame coz! conversion error.");
+      }
     }
   });
-
-  while (keepSending) {
-    await Future.delayed(const Duration(milliseconds: 200)); // Prevent CPU overload
-  }
 }

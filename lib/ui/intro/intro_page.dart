@@ -8,7 +8,7 @@ import 'package:spotify_ui/cameraCapture.dart';
 
 class IntroPage extends StatefulWidget {
   final VideoService videoService;
-  const IntroPage({Key? key, required this.videoService}) : super(key: key);
+  const IntroPage({super.key, required this.videoService});
 
   @override
   State<IntroPage> createState() => _IntroPageState();

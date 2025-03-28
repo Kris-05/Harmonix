@@ -32,7 +32,7 @@ async def createAccount(user: UserModel):
 
 
 # Login User Route
-@router.post("/login")
+@router.post("/login") 
 async def loginUser(login_data: LoginModel):
     email=login_data.email
     password=login_data.password

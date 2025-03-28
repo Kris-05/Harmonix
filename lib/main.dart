@@ -20,7 +20,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   final VideoService videoService;
 
-  // ✅ Pass videoService here
+// Pass videoService here
   const MyApp({super.key, required this.videoService});
 
   @override
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
         ),
       ),
-      // ✅ Pass videoService to routes
+      // Pass videoService to routes
       routes: AppRoutes.getRoutes(videoService),
       initialRoute: AppRoutes.splashPage,
     );
