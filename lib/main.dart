@@ -16,7 +16,7 @@ void main() async {
   VideoService videoService = VideoService();
   await videoService.initializeCamera(); // Initialize before running app
 
-  runApp(const ProviderScope(child:MyApp(videoService: videoService)));
+  runApp(ProviderScope(child:MyApp(videoService: videoService)));
 }
 
 class MyApp extends StatelessWidget {
