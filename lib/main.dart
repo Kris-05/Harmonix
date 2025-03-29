@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:spotify_ui/cameraCapture.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 

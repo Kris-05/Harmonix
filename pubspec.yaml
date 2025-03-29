@@ -46,7 +46,7 @@ flutter:
     - assets/images/
     - assets/logo/
     - assets/svg/
-    # - lib/.env
+    - lib/.env
 
 
   fonts:
