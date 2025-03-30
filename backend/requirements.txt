@@ -1,0 +1,7 @@
+fastapi==0.109.2
+uvicorn==0.27.1
+deepface==0.0.89
+opencv-python==4.9.0.80
+python-multipart==0.0.7
+tf-keras==2.15.1  # Add this line
+tensorflow==2.19.0  # Or downgrade to 2.18.0
