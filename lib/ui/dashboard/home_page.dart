@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spotify_ui/providers/home_provider.dart';
+import 'package:spotify_ui/providers/music_provider.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/ui/dashboard/library/library_page.dart';
@@ -6,50 +9,35 @@ import 'package:spotify_ui/ui/dashboard/search/search_page.dart';
 import 'package:spotify_ui/ui/dashboard/songs/songs_page.dart';
 import 'package:spotify_ui/ui/dashboard/songs/widgets/music_slab.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerWidget  {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
 
-class _HomePageState extends State<HomePage> {
+    final selectedIndex = ref.watch(homeProvider);
+    final homeNotifier = ref.read(homeProvider.notifier);
+    final selectedSong = ref.watch(musicProvider);
 
-  int selectedIndex = 0;
-  Map<String, dynamic>? selectedSong; // store selected song
-  late List<Widget> pages ; // pages list
-
-  @override
-  void initState(){
-    super.initState();
-     pages = [
-      SongsPage(onSongSelected: updateSelectedSong),
+    final List<Widget> pages = [
+      const SongsPage(),
       const SearchPage(),
       const LibraryPage(),
     ];
-  }
 
-  void updateSelectedSong(Map<String, dynamic> song){
-    setState(() {
-      selectedSong = song;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.blackColor,
       body: Stack(
         children: [
           pages[selectedIndex],
-          if(selectedSong != null)
+          if(selectedSong.songName.isNotEmpty)
             Positioned.fill(
               child: Align(
                 alignment: Alignment.bottomCenter,
                 child: MusicSlab(
-                  songName: selectedSong!['name'], 
-                  artistName: selectedSong!['artist'],
-                  imgPath: selectedSong!['imgPath'],
+                  songName: selectedSong.songName, 
+                  artistName: selectedSong.artistName,
+                  imgPath: selectedSong.imgPath,
                 ),
               ),
             )
@@ -57,11 +45,7 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
-        onTap: (i) {
-          setState(() {
-            selectedIndex = i;
-          });
-        },
+        onTap: (i) => homeNotifier.setPage(i),
         items: [
           BottomNavigationBarItem(
             icon: SvgPicture.asset(

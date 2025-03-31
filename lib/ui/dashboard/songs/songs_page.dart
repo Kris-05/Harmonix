@@ -1,70 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spotify_ui/providers/music_provider.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
-import 'package:spotify_ui/ui/dashboard/songs/widgets/music_slab.dart';
 
-class SongsPage extends StatefulWidget {
-  final Function(Map<String, dynamic>) onSongSelected;
-
-  const SongsPage({super.key, required this.onSongSelected});
+class SongsPage extends ConsumerWidget {
+  const SongsPage({super.key});
 
   @override
-  State<SongsPage> createState() => _SongsPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
 
-class _SongsPageState extends State<SongsPage> {
-  
-  final List<Map<String, dynamic>> mRecentPlayedList = [
-    {
-      "imgPath": "assets/images/Afterburner.png",
-      "name": "One - Metallica",
-      "artist": "1(Remastered)"
-    },
-    {
-      "imgPath": "assets/images/Anthem.png",
-      "name": "Summertime Sadness",
-      "artist": "Lana Del Rey"
-    },
-    {
-      "imgPath": "assets/images/Artists.png",
-      "name": "Let's Get It On",
-      "artist": "Marvin Gaye"
-    },
-    {
-      "imgPath": "assets/images/Bryce_Vine.png",
-      "name": "Drew Barrymore",
-      "artist": "Indie Pop"
-    },
-  ];
+    // ignore: unused_local_variable
+    final selectedSong = ref.watch(musicProvider);
+    
+    final musicNotifier = ref.read(musicProvider.notifier);
 
-  final List<Map<String, dynamic>> mEditorPicksList = [
-    {
-      "imgPath": "assets/images/Afterburner.png",
-      "name": "Shape of You",
-      "artist": "Ed Sheeran"
-    },
-    {
-      "imgPath": "assets/images/Anthem.png",
-      "name": "Circles",
-      "artist": "Post Malone"
-    },
-    {
-      "imgPath": "assets/images/Artists.png",
-      "name": "I Don't Fuck With You",
-      "artist": "Big Sean"
-    },
-    {
-      "imgPath": "assets/images/Bryce_Vine.png",
-      "name": "Heat Waves",
-      "artist": "Glass Animals"
-    },
-  ];
+    final List<Map<String, dynamic>> mRecentPlayedList = [
+      {
+        "imgPath": "assets/images/Afterburner.png",
+        "name": "One - Metallica",
+        "artist": "1(Remastered)"
+      },
+      {
+        "imgPath": "assets/images/Anthem.png",
+        "name": "Summertime Sadness",
+        "artist": "Lana Del Rey"
+      },
+      {
+        "imgPath": "assets/images/Artists.png",
+        "name": "Let's Get It On",
+        "artist": "Marvin Gaye"
+      },
+      {
+        "imgPath": "assets/images/Bryce_Vine.png",
+        "name": "Drew Barrymore",
+        "artist": "Indie Pop"
+      },
+    ];
 
-  Map<String, dynamic>? selectedSong;
+    final List<Map<String, dynamic>> mEditorPicksList = [
+      {
+        "imgPath": "assets/images/Afterburner.png",
+        "name": "Shape of You",
+        "artist": "Ed Sheeran"
+      },
+      {
+        "imgPath": "assets/images/Anthem.png",
+        "name": "Circles",
+        "artist": "Post Malone"
+      },
+      {
+        "imgPath": "assets/images/Artists.png",
+        "name": "I Don't Fuck With You",
+        "artist": "Big Sean"
+      },
+      {
+        "imgPath": "assets/images/Bryce_Vine.png",
+        "name": "Heat Waves",
+        "artist": "Glass Animals"
+      },
+    ];
 
-  @override
-  Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         backgroundColor: AppColors.blackColor,
@@ -73,16 +70,10 @@ class _SongsPageState extends State<SongsPage> {
             mSpacer(),
             recentlyPlayedUI(), // top bar
             mSpacer(),
-            recentlyPlayedList(), // recently played
+            recentlyPlayedList(mRecentPlayedList, musicNotifier), // recently played
             playListUI(),
             mSpacer(mHeight: 20),
-            editorPicksUI(),
-            if(selectedSong != null)
-              MusicSlab(
-                songName: selectedSong!['name'],
-                artistName: selectedSong!['artist'],
-                imgPath: selectedSong!['imgPath']
-              )
+            editorPicksUI(mEditorPicksList, musicNotifier),
           ],
         ),
       ),
@@ -96,7 +87,8 @@ class _SongsPageState extends State<SongsPage> {
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                Text("Recently Played",
+                Text(
+                  "Recently Played",
                   style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500),
                 ),
                 Spacer(),
@@ -112,24 +104,24 @@ class _SongsPageState extends State<SongsPage> {
     );
   }
 
-  Widget recentlyPlayedList(){
+  Widget recentlyPlayedList(List<Map<String, dynamic>> songs, MusicNotifier notifier){
     return SizedBox(
       height: 150,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: mRecentPlayedList.length,
+        itemCount: songs.length,
         itemBuilder: (_, i) {
           return GestureDetector(
-            onTap: (){
-              widget.onSongSelected(mRecentPlayedList[i]); // send song to home Page
+            onTap: () {
+              notifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath']);
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Column(
                 children: [
-                  Image.asset(mRecentPlayedList[i]['imgPath'], width: 100, height: 100),
+                  Image.asset(songs[i]['imgPath'], width: 100, height: 100),
                   mSpacer(),
-                  Text(mRecentPlayedList[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12),),
+                  Text(songs[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12)),
                 ],
               ),
             ),
@@ -167,7 +159,7 @@ class _SongsPageState extends State<SongsPage> {
     );
   }
 
-  Widget editorPicksUI(){
+  Widget editorPicksUI(List<Map<String, dynamic>> songs, MusicNotifier notifier){
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -180,21 +172,19 @@ class _SongsPageState extends State<SongsPage> {
           height: 150,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: mEditorPicksList.length,
+            itemCount: songs.length,
             itemBuilder: (_, i) {
               return GestureDetector(
-                onTap: (){
-                  setState(() {
-                    widget.onSongSelected(mEditorPicksList[i]); // send song to home Page
-                  });
+                onTap: () {
+                  notifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath']);
                 },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: Column(
                     children: [
-                      Image.asset(mEditorPicksList[i]['imgPath'], width: 100, height: 100),
+                      Image.asset(songs[i]['imgPath'], width: 100, height: 100),
                       mSpacer(),
-                      Text(mEditorPicksList[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12),),
+                      Text(songs[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12)),
                     ],
                   ),
                 ),

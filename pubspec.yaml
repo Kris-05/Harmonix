@@ -33,6 +33,14 @@ dependencies:
   http: ^1.2.1
   flutter_dotenv: ^5.1.0
   flutter_riverpod: ^2.4.9
+  audio_video_progress_bar: ^2.0.3
+  spotify: ^0.13.7
+  youtube_explode_dart: ^2.3.10
+  audioplayers: ^6.4.0
+  auto_scroll_text: ^0.0.7
+  # scrollable_positioned_list: ^0.3.8
+  palette_generator: ^0.3.3+6 
+  # intl: ^0.20.2
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8

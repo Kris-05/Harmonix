@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
+import 'package:spotify_ui/providers/music_provider.dart';
 
-class MusicSlab extends StatefulWidget {
+class MusicSlab extends ConsumerWidget {
   final String songName;
   final String artistName;
   final String imgPath;
@@ -16,27 +18,16 @@ class MusicSlab extends StatefulWidget {
   });
 
   @override
-  State<MusicSlab> createState() => _MusicSlabState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
 
-class _MusicSlabState extends State<MusicSlab> {
+    final musicState = ref.watch(musicProvider);
+    final musicNotifier = ref.read(musicProvider.notifier);
 
-  bool isLiked = false;
-  bool isPlaying = false;
-
-  @override
-  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: (){
-        Navigator.pushNamed(
-          context, 
-          AppRoutes.songsPage,
-          arguments: {
-            'songName': widget.songName,
-            'artistName': widget.artistName,
-            'imgPath': widget.imgPath,
-          },
-        );
+        // Update global state when clicking the MusicSlab
+        musicNotifier.setSong(songName, artistName, imgPath);
+        Navigator.pushNamed(context, AppRoutes.songsPage);
       },
       child: Container(
         height: 66,
@@ -58,14 +49,14 @@ class _MusicSlabState extends State<MusicSlab> {
               //       ),
               //     ),
               //   ),
-                Image.asset(widget.imgPath, width: 48, height: 48, fit: BoxFit.cover),
+                Image.asset(imgPath, width: 48, height: 48, fit: BoxFit.cover),
                 mSpacer(),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(widget.songName, style: TextStyle(fontSize: 14, color: AppColors.whiteColor, fontWeight: FontWeight.w500)),
-                    Text(widget.artistName, style: TextStyle(fontSize: 12, color: AppColors.greyColor, fontWeight: FontWeight.w500)),
+                    Text(songName, style: TextStyle(fontSize: 14, color: AppColors.whiteColor, fontWeight: FontWeight.w500)),
+                    Text(artistName, style: TextStyle(fontSize: 12, color: AppColors.greyColor, fontWeight: FontWeight.w500)),
                   ],
                 )
               ],
@@ -74,21 +65,17 @@ class _MusicSlabState extends State<MusicSlab> {
             Row(children: [
               IconButton(
                 onPressed: () {
-                  setState(() {
-                    isLiked = !isLiked; 
-                  });
+                   musicNotifier.toggleLike(); // Updated to use Riverpod
                 },
-                icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border),
-                color: isLiked ? AppColors.primaryColor : AppColors.whiteColor, 
+                icon: Icon(musicState.isLiked ? Icons.favorite : Icons.favorite_border),
+                color: musicState.isLiked ? AppColors.primaryColor : AppColors.whiteColor, 
                 iconSize: 25,
               ),
               IconButton(
-                onPressed: () {
-                  setState(() {
-                    isPlaying = !isPlaying; 
-                  });
+                 onPressed: () {
+                  musicNotifier.togglePlayPause(); // Updated to use Riverpod
                 },
-                icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow), 
+                icon: Icon(musicState.isPlaying ? Icons.pause : Icons.play_arrow),
                 color: AppColors.whiteColor,
                 iconSize: 30,
               ),

@@ -39,6 +39,10 @@ class MusicNotifier extends StateNotifier<MusicState> {
     state = state.copyWith(songName: name, artistName: artist, imgPath: image, isPlaying: true);
   }
 
+  void clearSong() {
+    state = MusicState();
+  }
+
   void togglePlayPause() {
     state = state.copyWith(isPlaying: !state.isPlaying);
   }
