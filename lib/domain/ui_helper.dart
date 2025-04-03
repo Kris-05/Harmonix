@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
+import 'package:palette_generator/palette_generator.dart';
+
 
 Widget mSpacer({
   double mWidth = 11,
@@ -49,3 +51,12 @@ InputDecoration getTextDecoration({
     )
   ),
 );
+
+
+Future<PaletteGenerator> getColorPlate(String imgPath) async {
+  return await PaletteGenerator.fromImageProvider(
+    AssetImage(imgPath),
+    size: const Size(100, 100), 
+    maximumColorCount: 3, 
+  );
+}

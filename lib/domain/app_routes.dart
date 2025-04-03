@@ -8,6 +8,8 @@ import 'package:spotify_ui/ui/login/name_page.dart';
 import 'package:spotify_ui/ui/splash/splash_page.dart';
 import 'package:spotify_ui/ui/login/login.dart';
 import 'package:spotify_ui/cameraCapture.dart';
+import 'package:spotify_ui/ui/dashboard/library/playlist_specific_page.dart';
+import 'package:spotify_ui/ui/dashboard/library/create_playlist.dart';
 
 class AppRoutes {
   // These are the Routes...
@@ -19,6 +21,8 @@ class AppRoutes {
   static const String artistPage = "/choose_artist";
   static const String homePage = "/home";
   static const String songsPage = "/songs";
+  static const String playListSpecific ="/PlayListSpecific";
+  static const String createPlaylist ="/createPlaylist";
 
   // This Mapping Routing.....
   static Map<String, Widget Function(BuildContext)> getRoutes(VideoService videoService) => {
@@ -30,5 +34,21 @@ class AppRoutes {
         artistPage: (context) => ChooseArtist(),
         homePage: (context) => HomePage(),
         songsPage: (context) => MusicPlayer(),
+        createPlaylist:(context){
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+
+                    return CreatePlaylist(fetchPl: args['onPlaylistCreated']);
+        },
+        
+         playListSpecific: (context) {
+                    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+                    return PlaylistSpecificPage(
+                      isLiked: args['isLiked'],
+                      bgColor:args['BgColor'],
+                      playListName: args['playListName'],
+                      id: args['id'],
+                      onUpdate:args['onUpdate']
+                    );
+              },
   };
 }

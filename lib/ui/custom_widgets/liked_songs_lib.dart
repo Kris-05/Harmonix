@@ -6,9 +6,9 @@ class LikedSongsLib extends StatefulWidget {
   final String title;
   final String subTitle;
   final int likedCount;
-  bool isPinned=false;
+  bool isPinned;
 
-  LikedSongsLib({super.key,required this.title,required this.subTitle,required this.likedCount, this.isPinned=false});
+  LikedSongsLib({super.key,required this.title,required this.subTitle,required this.likedCount, this.isPinned=true});
 
   @override
   State<LikedSongsLib> createState() => _LikedSongsLibState();
@@ -26,6 +26,7 @@ class _LikedSongsLibState extends State<LikedSongsLib> {
         height: 60,
         
         decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(11),
           gradient:LinearGradient(colors: [
             Color(0xff4A39EA),
             Color(0xff868AE1),
@@ -42,10 +43,13 @@ class _LikedSongsLibState extends State<LikedSongsLib> {
       titleTextStyle: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,fontSize: 16),
       subtitle: Row(
         children: [
-          SvgPicture.asset("assets/svg/Pin.svg",color: Color(0xff1ED760),height: 14,width: 8,),
-          mSpacer(
-            mWidth:3,
-          ),
+          if(widget.isPinned)
+            SvgPicture.asset("assets/svg/Pin.svg",color: Color(0xff1ED760),height: 14,width: 8),
+          if(widget.isPinned)
+            mSpacer(
+              mWidth:3,
+            ),
+
           Text("${widget.subTitle} . ${widget.likedCount} songs",style: TextStyle(color: Color(0xffB3B3B3))),
         ],
       ),

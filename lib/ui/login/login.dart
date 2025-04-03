@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:spotify_ui/api/auth.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
+import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
 import 'package:spotify_ui/ui/custom_widgets/custom_button.dart';
 
@@ -89,7 +90,7 @@ class _LoginState extends State<Login> {
                     try{
                     final res=await Auth.loginApi(email:emailController.text, password:passController.text );
                     print("Login Successs");
-                    print(res);
+                    Navigator.pushNamed(context, AppRoutes.homePage);
                   }
                   catch(err){
                     setState(() {

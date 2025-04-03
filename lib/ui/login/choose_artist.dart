@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spotify_ui/api/auth.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
 import 'package:spotify_ui/ui/custom_widgets/circular_img.dart';
@@ -14,6 +15,30 @@ class ChooseArtist extends StatefulWidget {
 }
 
 class _ChooseArtistState extends State<ChooseArtist> {
+
+  late String email;
+  late String password;
+  late String gender;
+  late List<String> languages;
+  late String name;
+
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Get arguments passed from the previous page
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    // Assign arguments to variables safely with fallback values
+    email = args?['email'] ?? 'N/A';
+    password = args?['password'] ?? 'N/A';
+    gender = args?['gender'] ?? 'N/A';
+    languages=args?['languages'] ?? [];
+    name=args?['name']??[];
+  }
+
+
   List<int> selectedArtist = [];
   List<Map<String, dynamic>> mArtist = [
     {
@@ -201,12 +226,33 @@ class _ChooseArtistState extends State<ChooseArtist> {
       ),
     );
   }
+List<String> MapArtist(List<int> ind){
+  List<String> artists=[];
+  for(int el in ind){
+    if(el >=0 && el<mArtist.length){
+        artists.add(mArtist[el]["name"]);
+    }
+  }
+  return artists;
+}
 
-  Widget nxtButton() => Center(
+Widget nxtButton() => Center(
     child: CustomButton(
-      onTap: (){
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()));
-        // Navigator.pushNamed(context, AppRoutes.homePage);
+      onTap:  ()async {
+        print("Saving the Uer With The Artist");
+        print(selectedArtist);
+        dynamic artists=MapArtist(selectedArtist);
+        print(artists);
+        try{
+          final res=await Auth.createAccountApi(email:email, password:password, gender:gender, name:name,languages:languages,arts:artists);
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()));
+
+          print(res);
+        }
+        catch(err){
+          print(err);
+        }
+        
       }, 
       text: "Next",
       bgColor: AppColors.whiteColor,

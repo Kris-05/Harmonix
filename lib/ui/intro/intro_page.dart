@@ -102,17 +102,17 @@ class _IntroPageState extends State<IntroPage> {
               textColor: Colors.white,
               bgColor: AppColors.primaryColor,
               onTap: () async {
-                          if (isRecording) {
-                            await widget.videoService.stopSendingFrames();
-                            setState(() {
-                              isRecording = false;
-                            });
-                          } else {
-                            await widget.videoService.startSendingFrames();
-                            setState(() {
-                              isRecording = true;
-                            });
-                          }
+                          // if (isRecording) {
+                          //   await widget.videoService.stopSendingFrames();
+                          //   setState(() {
+                          //     isRecording = false;
+                          //   });
+                          // } else {
+                          //   await widget.videoService.startSendingFrames();
+                          //   setState(() {
+                          //     isRecording = true;
+                          //   });
+                          // }
                         },
             ),
             mSpacer(),
