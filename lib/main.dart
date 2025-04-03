@@ -38,6 +38,7 @@ class MyApp extends StatelessWidget {
         )
       ),
       routes: AppRoutes.getRoutes(),
+      onGenerateRoute: AppRoutes.onGenerateRoute, 
       initialRoute: AppRoutes.splashPage,
     );
   }

@@ -1,3 +1,5 @@
+// import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:spotify_ui/ui/dashboard/songs/widgets/music_player.dart';
 import 'package:spotify_ui/ui/login/choose_artist.dart';
@@ -28,6 +30,31 @@ class AppRoutes {
     loginPage:(context)=>Login(),
     artistPage: (context) => ChooseArtist(),
     homePage: (context) => HomePage(),
-    songsPage: (context) => MusicPlayer(),
   };
+
+  // Handle dynamic routes
+  static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case songsPage:
+        // Expect a Map<String, dynamic> as arguments
+        final args = settings.arguments as Map<String, dynamic>?; 
+        if (args != null && args.containsKey('trackId')) {
+          final trackId = args['trackId'] as String; // Extract trackId
+          return MaterialPageRoute(
+            builder: (context) => MusicPlayer(trackId: trackId),
+          );
+        }
+        return _errorRoute(); // Return error if args are not valid
+      default:
+        return null; // Unknown route
+    }
+  }
+
+  static Route<dynamic> _errorRoute() {
+    return MaterialPageRoute(
+      builder: (context) => Scaffold(
+        body: Center(child: Text("Page not found")),
+      ),
+    );
+  }
 }

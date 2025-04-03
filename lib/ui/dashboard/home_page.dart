@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotify_ui/providers/home_provider.dart';
@@ -19,6 +20,8 @@ class HomePage extends ConsumerWidget  {
     final homeNotifier = ref.read(homeProvider.notifier);
     final selectedSong = ref.watch(musicProvider);
 
+    final player = AudioPlayer(); // Create an AudioPlayer instance
+
     final List<Widget> pages = [
       const SongsPage(),
       const SearchPage(),
@@ -38,6 +41,8 @@ class HomePage extends ConsumerWidget  {
                   songName: selectedSong.songName, 
                   artistName: selectedSong.artistName,
                   imgPath: selectedSong.imgPath,
+                  trackId: selectedSong.trackId,
+                  player: player,
                 ),
               ),
             )

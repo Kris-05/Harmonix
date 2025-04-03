@@ -16,49 +16,57 @@ class SongsPage extends ConsumerWidget {
     
     final musicNotifier = ref.read(musicProvider.notifier);
 
-    final List<Map<String, dynamic>> mRecentPlayedList = [
+    const List<Map<String, dynamic>> mRecentPlayedList = [
       {
-        "imgPath": "assets/images/Afterburner.png",
-        "name": "One - Metallica",
-        "artist": "1(Remastered)"
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b273daf19986ce2c148768f5c362",
+        "name": "Mortals",
+        "artist": "Warriyo",
+        "trackId": "3Fg5uhtWBlW0es8GSqQ6Ff"
       },
       {
-        "imgPath": "assets/images/Anthem.png",
-        "name": "Summertime Sadness",
-        "artist": "Lana Del Rey"
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b273b0dd6a5cd1dec96c4119c262",
+        "name": "One of the Girls",
+        "artist": "The Weeknd, JENNIE, Lily-Rose Depp",
+        "trackId": "7CyPwkp0oE8Ro9Dd5CUDjW"
       },
       {
-        "imgPath": "assets/images/Artists.png",
-        "name": "Let's Get It On",
-        "artist": "Marvin Gaye"
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b273495ce6da9aeb159e94eaa453",
+        "name": "Closer",
+        "artist": "The Chainsmokers",
+        "trackId": "7BKLCZ1jbUBVqRi2FVlTVw"
       },
       {
-        "imgPath": "assets/images/Bryce_Vine.png",
-        "name": "Drew Barrymore",
-        "artist": "Indie Pop"
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b27337677af5b4f23fe9dc8a3c04",
+        "name": "Animals",
+        "artist": "Maroon 5",
+        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
       },
     ];
 
     final List<Map<String, dynamic>> mEditorPicksList = [
       {
-        "imgPath": "assets/images/Afterburner.png",
-        "name": "Shape of You",
-        "artist": "Ed Sheeran"
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b273b6b3b7f26f0bc0e0197163a0",
+        "name": "Arabic Kuthu",
+        "artist": "Anirudh Ravichander",
+        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
       },
       {
-        "imgPath": "assets/images/Anthem.png",
-        "name": "Circles",
-        "artist": "Post Malone"
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b2736d97b3dc154dfdbe2321fb5c",
+        "name": "Chuttamalle",
+        "artist": "Shilpa Rao, Anirudh Ravichander",
+        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
       },
       {
-        "imgPath": "assets/images/Artists.png",
-        "name": "I Don't Fuck With You",
-        "artist": "Big Sean"
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b273c812fd378635732ad755733d",
+        "name": "Badass (From `Leo`)",
+        "artist": "Anirudh Ravichander",
+        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
       },
       {
-        "imgPath": "assets/images/Bryce_Vine.png",
-        "name": "Heat Waves",
-        "artist": "Glass Animals"
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b273e6065f209e0a01986206bd53",
+        "name": "Sailor Song",
+        "artist": "Gigi Perez",
+        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
       },
     ];
 
@@ -113,13 +121,44 @@ class SongsPage extends ConsumerWidget {
         itemBuilder: (_, i) {
           return GestureDetector(
             onTap: () {
-              notifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath']);
+              notifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath'], songs[i]['trackId'],);
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Column(
                 children: [
-                  Image.asset(songs[i]['imgPath'], width: 100, height: 100),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10), // Rounded corners
+                    child: Image.network(
+                      songs[i]['imgPath'],
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return SizedBox(
+                          width: 100,
+                          height: 100,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      (loadingProgress.expectedTotalBytes ?? 1)
+                                  : null,
+                            ),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 100,
+                          height: 100,
+                          color: Colors.grey[800], // Placeholder color
+                          child: Icon(Icons.broken_image, color: Colors.white),
+                        );
+                      },
+                    ),
+                  ),
                   mSpacer(),
                   Text(songs[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12)),
                 ],
@@ -176,13 +215,44 @@ class SongsPage extends ConsumerWidget {
             itemBuilder: (_, i) {
               return GestureDetector(
                 onTap: () {
-                  notifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath']);
+                  notifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath'], songs[i]['trackId']);
                 },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: Column(
                     children: [
-                      Image.asset(songs[i]['imgPath'], width: 100, height: 100),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10), // Rounded corners
+                        child: Image.network(
+                          songs[i]['imgPath'],
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return SizedBox(
+                              width: 100,
+                              height: 100,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          (loadingProgress.expectedTotalBytes ?? 1)
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 100,
+                              height: 100,
+                              color: Colors.grey[800], // Placeholder color
+                              child: Icon(Icons.broken_image, color: Colors.white),
+                            );
+                          },
+                        ),
+                      ),
                       mSpacer(),
                       Text(songs[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12)),
                     ],
