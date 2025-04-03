@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
+import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
 import 'package:spotify_ui/ui/custom_widgets/custom_button.dart';
 import 'package:spotify_ui/api/auth.dart';
@@ -87,8 +88,18 @@ class _NamePageState extends State<NamePage> {
                 if(isOneSelected && isTwoSelected){
                   // Calling the Create Account function.. 
                   try{
-                    final res=await Auth.createAccountApi(email:email, password:password, gender:gender, name:name.text,languages:languages);
-                    print(res);
+                    Navigator.pushNamed(context, AppRoutes.artistPage,arguments: {
+                      'email': email,
+                      'password': password,
+                      'gender': gender,
+                      'languages': languages,
+                      'name':name.text
+                    }, );
+
+                    print("REdirect to the Artist Pagee..");
+                    
+                    // final res=await Auth.createAccountApi(email:email, password:password, gender:gender, name:name.text,languages:languages);
+                    // print(res);
                   }
                   catch(err){
                     print(err);

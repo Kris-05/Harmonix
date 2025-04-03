@@ -36,6 +36,7 @@ migrate_working_dir/
 .pub/
 /build/
 
+backend/app/__pycache__
 # Symbolication related
 app.*.symbols
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:spotify_ui/api/auth.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
+import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
 import 'package:spotify_ui/ui/custom_widgets/custom_button.dart';
 
@@ -76,17 +77,28 @@ class _LoginState extends State<Login> {
                     return;
                   } 
                   }else {
+
+                    if(passController.text.length<8){
+                      setState(() {
+                        passwordError="It Must Be Atleast 8 Chars";
+                        return;
+                      });
+                    }
+
+
                     print("Pressed Submit ,, Gonna Call Api");
                     try{
                     final res=await Auth.loginApi(email:emailController.text, password:passController.text );
                     print("Login Successs");
-                    print(res);
+                    Navigator.pushNamed(context, AppRoutes.homePage);
                   }
                   catch(err){
                     setState(() {
                       passwordError="Error in Logging In";
                     });
                   }
+
+
                  }
                 
 
