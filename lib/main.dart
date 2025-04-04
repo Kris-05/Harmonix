@@ -42,6 +42,7 @@ class MyApp extends StatelessWidget {
       ),
       // Pass videoService to routes
       routes: AppRoutes.getRoutes(videoService),
+      onGenerateRoute: AppRoutes.onGenerateRoute, 
       initialRoute: AppRoutes.splashPage,
     );
   }

@@ -1,71 +1,118 @@
+import 'package:audioplayers/audioplayers.dart';
+import 'package:auto_scroll_text/auto_scroll_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
+import 'package:spotify_ui/providers/music_provider.dart';
 
-class MusicSlab extends StatefulWidget {
+class MusicSlab extends ConsumerWidget {
   final String songName;
   final String artistName;
   final String imgPath;
+  final String trackId;
+  final AudioPlayer player;
 
   const MusicSlab({
     super.key,
     required this.songName,
     required this.artistName,
     required this.imgPath,
+    required this.trackId,
+    required this.player,
   });
 
   @override
-  State<MusicSlab> createState() => _MusicSlabState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
 
-class _MusicSlabState extends State<MusicSlab> {
+    final musicState = ref.watch(musicProvider);
+    final musicNotifier = ref.read(musicProvider.notifier);
 
-  bool isLiked = false;
-  bool isPlaying = false;
-
-  @override
-  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: (){
+        // Update global state when clicking the MusicSlab
+        musicNotifier.setSong(songName, artistName, imgPath, trackId);
         Navigator.pushNamed(
-          context, 
+          context,
           AppRoutes.songsPage,
-          arguments: {
-            'songName': widget.songName,
-            'artistName': widget.artistName,
-            'imgPath': widget.imgPath,
-          },
+          arguments: {'trackId': trackId}, // Pass trackId as an argument
         );
       },
       child: Container(
         height: 66,
-        width: MediaQuery.of(context).size.width,
+        width: double.infinity,
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 232, 185, 241)
+          color: const Color.fromARGB(255, 232, 185, 241),
         ),
-        padding: EdgeInsets.all(9),
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(children: [
-              //  Container(
-              //     width: 48,
-              //     decoration: BoxDecoration(
-              //       image: DecorationImage(
-              //         image: AssetImage("assets/images/Afterburner.png"),
-              //         fit: BoxFit.cover, 
-              //       ),
-              //     ),
-              //   ),
-                Image.asset(widget.imgPath, width: 48, height: 48, fit: BoxFit.cover),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10), // Rounded corners
+                  child: Image.network(
+                    musicState.imgPath,
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    (loadingProgress.expectedTotalBytes ?? 1)
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 50,
+                        height: 50,
+                        color: Colors.grey[800], // Placeholder color
+                        child: Icon(Icons.broken_image, color: Colors.white),
+                      );
+                    },
+                  ),
+                ),
                 mSpacer(),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(widget.songName, style: TextStyle(fontSize: 14, color: AppColors.whiteColor, fontWeight: FontWeight.w500)),
-                    Text(widget.artistName, style: TextStyle(fontSize: 12, color: AppColors.greyColor, fontWeight: FontWeight.w500)),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.5,
+                      child: AutoScrollText(
+                        musicState.songName,
+                        style: TextStyle(
+                          fontSize: 14, 
+                          color: AppColors.whiteColor,
+                          fontWeight: FontWeight.w500
+                        ),
+                        mode: AutoScrollTextMode.bouncing,
+                        pauseBetween: Duration(seconds: 1),
+                      ),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.5,
+                      child: AutoScrollText(
+                        musicState.artistName,
+                        style: TextStyle(
+                          fontSize: 14, 
+                          color: AppColors.greyColor,
+                          fontWeight: FontWeight.w500
+                        ),
+                        mode: AutoScrollTextMode.bouncing,
+                        pauseBetween: Duration(seconds: 1),
+                      ),
+                    ),
                   ],
                 )
               ],
@@ -74,21 +121,17 @@ class _MusicSlabState extends State<MusicSlab> {
             Row(children: [
               IconButton(
                 onPressed: () {
-                  setState(() {
-                    isLiked = !isLiked; 
-                  });
+                   musicNotifier.toggleLike(); // Updated to use Riverpod
                 },
-                icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border),
-                color: isLiked ? AppColors.primaryColor : AppColors.whiteColor, 
+                icon: Icon(musicState.isLiked ? Icons.favorite : Icons.favorite_border),
+                color: musicState.isLiked ? AppColors.primaryColor : AppColors.whiteColor, 
                 iconSize: 25,
               ),
               IconButton(
-                onPressed: () {
-                  setState(() {
-                    isPlaying = !isPlaying; 
-                  });
+                 onPressed: () {
+                  musicNotifier.togglePlayPause(); // Updated to use Riverpod
                 },
-                icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow), 
+                icon: Icon(musicState.isPlaying ? Icons.pause : Icons.play_arrow),
                 color: AppColors.whiteColor,
                 iconSize: 30,
               ),

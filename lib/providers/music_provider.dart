@@ -4,6 +4,7 @@ class MusicState {
   final String songName;
   final String artistName;
   final String imgPath;
+  final String trackId; 
   final bool isPlaying;
   final bool isLiked;
 
@@ -11,6 +12,7 @@ class MusicState {
     this.songName = '',
     this.artistName = '',
     this.imgPath = '',
+    this.trackId = '', // Initialize trackId
     this.isPlaying = false,
     this.isLiked = false,
   });
@@ -19,6 +21,7 @@ class MusicState {
     String? songName,
     String? artistName,
     String? imgPath,
+    String? trackId, // Include trackId
     bool? isPlaying,
     bool? isLiked,
   }) {
@@ -26,6 +29,7 @@ class MusicState {
       songName: songName ?? this.songName,
       artistName: artistName ?? this.artistName,
       imgPath: imgPath ?? this.imgPath,
+      trackId: trackId ?? this.trackId, // Copy trackId
       isPlaying: isPlaying ?? this.isPlaying,
       isLiked: isLiked ?? this.isLiked,
     );
@@ -35,8 +39,18 @@ class MusicState {
 class MusicNotifier extends StateNotifier<MusicState> {
   MusicNotifier() : super(MusicState());
 
-  void setSong(String name, String artist, String image) {
-    state = state.copyWith(songName: name, artistName: artist, imgPath: image, isPlaying: true);
+  void setSong(String name, String artist, String image, String trackId) {
+    state = state.copyWith(
+      songName: name,
+      artistName: artist,
+      imgPath: image,
+      trackId: trackId,
+      isPlaying: true,
+    );
+  }
+
+  void clearSong() {
+    state = MusicState();
   }
 
   void togglePlayPause() {

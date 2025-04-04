@@ -1,70 +1,75 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spotify_ui/providers/music_provider.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
-import 'package:spotify_ui/ui/dashboard/songs/widgets/music_slab.dart';
 
-class SongsPage extends StatefulWidget {
-  final Function(Map<String, dynamic>) onSongSelected;
-
-  const SongsPage({super.key, required this.onSongSelected});
+class SongsPage extends ConsumerWidget {
+  const SongsPage({super.key});
 
   @override
-  State<SongsPage> createState() => _SongsPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
 
-class _SongsPageState extends State<SongsPage> {
-  
-  final List<Map<String, dynamic>> mRecentPlayedList = [
-    {
-      "imgPath": "assets/images/Afterburner.png",
-      "name": "One - Metallica",
-      "artist": "1(Remastered)"
-    },
-    {
-      "imgPath": "assets/images/Anthem.png",
-      "name": "Summertime Sadness",
-      "artist": "Lana Del Rey"
-    },
-    {
-      "imgPath": "assets/images/Artists.png",
-      "name": "Let's Get It On",
-      "artist": "Marvin Gaye"
-    },
-    {
-      "imgPath": "assets/images/Bryce_Vine.png",
-      "name": "Drew Barrymore",
-      "artist": "Indie Pop"
-    },
-  ];
+    // ignore: unused_local_variable
+    final selectedSong = ref.watch(musicProvider);
+    
+    final musicNotifier = ref.read(musicProvider.notifier);
 
-  final List<Map<String, dynamic>> mEditorPicksList = [
-    {
-      "imgPath": "assets/images/Afterburner.png",
-      "name": "Shape of You",
-      "artist": "Ed Sheeran"
-    },
-    {
-      "imgPath": "assets/images/Anthem.png",
-      "name": "Circles",
-      "artist": "Post Malone"
-    },
-    {
-      "imgPath": "assets/images/Artists.png",
-      "name": "I Don't Fuck With You",
-      "artist": "Big Sean"
-    },
-    {
-      "imgPath": "assets/images/Bryce_Vine.png",
-      "name": "Heat Waves",
-      "artist": "Glass Animals"
-    },
-  ];
+    const List<Map<String, dynamic>> mRecentPlayedList = [
+      {
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b273daf19986ce2c148768f5c362",
+        "name": "Mortals",
+        "artist": "Warriyo",
+        "trackId": "3Fg5uhtWBlW0es8GSqQ6Ff"
+      },
+      {
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b273b0dd6a5cd1dec96c4119c262",
+        "name": "One of the Girls",
+        "artist": "The Weeknd, JENNIE, Lily-Rose Depp",
+        "trackId": "7CyPwkp0oE8Ro9Dd5CUDjW"
+      },
+      {
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b273495ce6da9aeb159e94eaa453",
+        "name": "Closer",
+        "artist": "The Chainsmokers",
+        "trackId": "7BKLCZ1jbUBVqRi2FVlTVw"
+      },
+      {
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b27337677af5b4f23fe9dc8a3c04",
+        "name": "Animals",
+        "artist": "Maroon 5",
+        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
+      },
+    ];
 
-  Map<String, dynamic>? selectedSong;
+    final List<Map<String, dynamic>> mEditorPicksList = [
+      {
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b273b6b3b7f26f0bc0e0197163a0",
+        "name": "Arabic Kuthu",
+        "artist": "Anirudh Ravichander",
+        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
+      },
+      {
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b2736d97b3dc154dfdbe2321fb5c",
+        "name": "Chuttamalle",
+        "artist": "Shilpa Rao, Anirudh Ravichander",
+        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
+      },
+      {
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b273c812fd378635732ad755733d",
+        "name": "Badass (From `Leo`)",
+        "artist": "Anirudh Ravichander",
+        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
+      },
+      {
+        "imgPath": "https://i.scdn.co/image/ab67616d0000b273e6065f209e0a01986206bd53",
+        "name": "Sailor Song",
+        "artist": "Gigi Perez",
+        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
+      },
+    ];
 
-  @override
-  Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         backgroundColor: AppColors.blackColor,
@@ -73,16 +78,10 @@ class _SongsPageState extends State<SongsPage> {
             mSpacer(),
             recentlyPlayedUI(), // top bar
             mSpacer(),
-            recentlyPlayedList(), // recently played
+            recentlyPlayedList(mRecentPlayedList, musicNotifier), // recently played
             playListUI(),
             mSpacer(mHeight: 20),
-            editorPicksUI(),
-            if(selectedSong != null)
-              MusicSlab(
-                songName: selectedSong!['name'],
-                artistName: selectedSong!['artist'],
-                imgPath: selectedSong!['imgPath']
-              )
+            editorPicksUI(mEditorPicksList, musicNotifier),
           ],
         ),
       ),
@@ -96,7 +95,8 @@ class _SongsPageState extends State<SongsPage> {
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                Text("Recently Played",
+                Text(
+                  "Recently Played",
                   style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500),
                 ),
                 Spacer(),
@@ -112,24 +112,55 @@ class _SongsPageState extends State<SongsPage> {
     );
   }
 
-  Widget recentlyPlayedList(){
+  Widget recentlyPlayedList(List<Map<String, dynamic>> songs, MusicNotifier notifier){
     return SizedBox(
       height: 150,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: mRecentPlayedList.length,
+        itemCount: songs.length,
         itemBuilder: (_, i) {
           return GestureDetector(
-            onTap: (){
-              widget.onSongSelected(mRecentPlayedList[i]); // send song to home Page
+            onTap: () {
+              notifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath'], songs[i]['trackId'],);
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Column(
                 children: [
-                  Image.asset(mRecentPlayedList[i]['imgPath'], width: 100, height: 100),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10), // Rounded corners
+                    child: Image.network(
+                      songs[i]['imgPath'],
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return SizedBox(
+                          width: 100,
+                          height: 100,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      (loadingProgress.expectedTotalBytes ?? 1)
+                                  : null,
+                            ),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 100,
+                          height: 100,
+                          color: Colors.grey[800], // Placeholder color
+                          child: Icon(Icons.broken_image, color: Colors.white),
+                        );
+                      },
+                    ),
+                  ),
                   mSpacer(),
-                  Text(mRecentPlayedList[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12),),
+                  Text(songs[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12)),
                 ],
               ),
             ),
@@ -167,7 +198,7 @@ class _SongsPageState extends State<SongsPage> {
     );
   }
 
-  Widget editorPicksUI(){
+  Widget editorPicksUI(List<Map<String, dynamic>> songs, MusicNotifier notifier){
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -180,21 +211,50 @@ class _SongsPageState extends State<SongsPage> {
           height: 150,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: mEditorPicksList.length,
+            itemCount: songs.length,
             itemBuilder: (_, i) {
               return GestureDetector(
-                onTap: (){
-                  setState(() {
-                    widget.onSongSelected(mEditorPicksList[i]); // send song to home Page
-                  });
+                onTap: () {
+                  notifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath'], songs[i]['trackId']);
                 },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: Column(
                     children: [
-                      Image.asset(mEditorPicksList[i]['imgPath'], width: 100, height: 100),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10), // Rounded corners
+                        child: Image.network(
+                          songs[i]['imgPath'],
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return SizedBox(
+                              width: 100,
+                              height: 100,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          (loadingProgress.expectedTotalBytes ?? 1)
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 100,
+                              height: 100,
+                              color: Colors.grey[800], // Placeholder color
+                              child: Icon(Icons.broken_image, color: Colors.white),
+                            );
+                          },
+                        ),
+                      ),
                       mSpacer(),
-                      Text(mEditorPicksList[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12),),
+                      Text(songs[i]['name'], style: TextStyle(color: Colors.white, fontSize: 12)),
                     ],
                   ),
                 ),
