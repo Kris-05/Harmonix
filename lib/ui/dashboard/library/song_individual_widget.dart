@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:spotify_ui/api/spotify.dart';
 
 
 class SongIndiComp extends StatefulWidget {
   final String title;
-  final String owner;
+  final String id;
   final String? imageUrl;
+  late String owner;
 
-  const SongIndiComp({
+   SongIndiComp({
     super.key,
     required this.title,
-    required this.owner,
+    required this.id, 
     this.imageUrl,
   });
 
@@ -18,6 +20,27 @@ class SongIndiComp extends StatefulWidget {
 }
 
 class _SongIndiCompState extends State<SongIndiComp> {
+   String? artistName;
+   String? albumImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchSongDetails();
+  }
+
+   Future<void> fetchSongDetails() async {
+    var songData = await Spotify.getSongInfo(widget.id);
+    
+    if (songData != null) {
+      setState(() {
+        artistName = songData["artists"][0]["name"];
+        albumImageUrl = songData["album"]["images"][0]["url"];
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -27,9 +50,9 @@ class _SongIndiCompState extends State<SongIndiComp> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
-            child: widget.imageUrl != null && widget.imageUrl!.isNotEmpty
+            child: albumImageUrl != null
                 ? Image.network(
-                    widget.imageUrl!,
+                    albumImageUrl!,
                     width: 50,
                     height: 50,
                     fit: BoxFit.cover,
@@ -58,7 +81,7 @@ class _SongIndiCompState extends State<SongIndiComp> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  widget.owner,
+                  artistName != null? artistName!:"Naa Thaa...",
                   style: const TextStyle(
                     color: Color(0xffB3B3B3),
                     fontSize: 13,

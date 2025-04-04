@@ -15,7 +15,6 @@ class VideoService {
   bool isolateInitialized = false;
   IO.Socket? socket;
 
-
   Future<void> initializeCamera() async {
     cameras = await availableCameras();
     if (cameras!.isNotEmpty) {
@@ -31,9 +30,8 @@ class VideoService {
     }
   }
 
-
   void connectSocket() {
-    socket = IO.io('http://192.168.254.28:8000/ws/socket.io/', <String, dynamic>{
+    socket = IO.io('http://10.16.50.117:8000/ws/socket.io/', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -41,16 +39,15 @@ class VideoService {
     socket!.connect();
 
     socket!.onConnect((_) {
-      print(" WebSocket connected");
+      print("WebSocket connected");
     });
 
-    socket!.onDisconnect((_) => print(" WebSocket disconnected"));
+    socket!.onDisconnect((_) => print("WebSocket disconnected"));
 
     socket!.onError((error) {
-      print(" WebSocket connection error: $error");
+      print("WebSocket connection error: $error");
     });
   }
-
 
   Future<void> startSendingFrames() async {
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
@@ -64,7 +61,7 @@ class VideoService {
     }
 
     isSendingFrames = true;
-    print(" Sending frames started...");
+    print("Sending frames started...");
 
     if (!isolateInitialized) {
       await _startIsolate();
@@ -79,16 +76,15 @@ class VideoService {
 
   Future<void> stopSendingFrames() async {
     if (!isSendingFrames) {
-      print(" No frame sending in progress.");
+      print("No frame sending in progress.");
       return;
     }
 
     isSendingFrames = false;
     _cameraController?.stopImageStream();
     isolateSendPort?.send('stop');
-    print(" Frame sending stopped.");
+    print("Frame sending stopped.");
   }
-
 
   Future<void> _startIsolate() async {
     receivePort = ReceivePort();
@@ -98,13 +94,13 @@ class VideoService {
       if (message is SendPort) {
         isolateSendPort = message;
         isolateInitialized = true;
-        print(" Isolate started and ready to send frames.");
+        print("Isolate started and ready to send frames.");
       }
     });
   }
 }
 
-
+// Convert YUV420 to RGB
 Uint8List convertYUV420toRGB(CameraImage image) {
   final int width = image.width;
   final int height = image.height;
@@ -127,7 +123,6 @@ Uint8List convertYUV420toRGB(CameraImage image) {
       final int up = uPlane.bytes[uvIndex];
       final int vp = vPlane.bytes[uvIndex];
 
-      // Convert YUV to RGB
       int r = (yp + vp * 1.402 - 179).round().clamp(0, 255);
       int g = (yp - 0.344136 * (up - 128) - 0.714136 * (vp - 128))
           .round()
@@ -145,48 +140,67 @@ void _sendFramesIsolate(SendPort mainSendPort) async {
   final receivePort = ReceivePort();
   mainSendPort.send(receivePort.sendPort);
 
-  IO.Socket? socket;
-
-  socket = IO.io('http://192.168.254.28:8000/', <String, dynamic>{
+  IO.Socket? socket = IO.io('http://10.16.50.117:8000/', <String, dynamic>{
     'transports': ['websocket'],
     'autoConnect': true,
   });
 
   socket.connect();
 
-    socket.onConnect((_) {
-    print(" Socket Concected to Back..");
+  socket.onConnect((_) {
+    print("Socket connected to backend.");
+  });
+
+  socket!.on('gesture', (data) {
+    print('\n\n\n\nGesture received: $data\n\n\n');
   });
 
   socket.onConnectError((error) {
-    print("  Error: $error");
+    print("Socket connect error: $error");
   });
 
   socket.onError((error) {
-    print(" IO Error: $error");
+    print("Socket IO error: $error");
   });
 
-  socket!.onDisconnect((_) {
-    print(" Disconnected from Socket!!..");
+  socket.onDisconnect((_) {
+    print("Socket disconnected.");
   });
-    
 
+  final List<Uint8List> frameBatch = [];
+  const int frameBatchSize = 1;
+  bool isProcessing = false;
 
   receivePort.listen((dynamic message) async {
     if (message == 'stop') {
-      print(" Isolated Thread stopping...");
-    } else if (message is CameraImage) {
+      print("Isolate thread stopping...");
+      frameBatch.clear();
+      isProcessing = false;
+    } else if (message is CameraImage && !isProcessing) {
       final Uint8List rgbBytes = convertYUV420toRGB(message);
+
       if (rgbBytes.isNotEmpty) {
-        print(socket);
-        if (socket != null && socket.connected) {
-          socket.emit('frame', rgbBytes); // Emit frames
-          print(" Frame sent through WebSocket");
-        } else {
-          print(" WebSocket not connected.");
+        frameBatch.add(rgbBytes);
+        print("Captured frame ${frameBatch.length}/$frameBatchSize");
+
+        if (frameBatch.length >= frameBatchSize) {
+          isProcessing = true;
+          print("Sending $frameBatchSize frames one-by-one...");
+
+          for (var i = 0; i < frameBatchSize; i++) {
+            if (socket.connected) {
+              socket.emit('frame', frameBatch[i]);
+              print("Sent frame ${i + 1}/$frameBatchSize");
+              await Future.delayed(Duration(milliseconds: 30)); // adjustable delay
+            }
+          }
+
+          frameBatch.clear();
+          isProcessing = false;
+          print("Batch complete. Ready for next.");
         }
       } else {
-        print(" Skipping frame coz! conversion error.");
+        print("Frame skipped due to conversion failure.");
       }
     }
   });

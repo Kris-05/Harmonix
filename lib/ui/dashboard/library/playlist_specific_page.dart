@@ -295,8 +295,8 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
                                 itemBuilder: (context, index) {
                                   final song = snapshot.data![index];
                                   return songComp(
-                                    owner: song['artist'] ?? "Unknown",
                                     title: song['name'] ?? "Unknown Song",
+                                    id:song['id'],
                                     isAdd: false,
                                   );
                                 },
@@ -372,10 +372,10 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
           shrinkWrap: true,
           padding: const EdgeInsets.symmetric(vertical: 2),
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: 5, // Dummy Recommended Songs
+          itemCount: 5, 
           itemBuilder: (_, ind) {
             return songComp(
-              owner: "Owner ${ind + 1}",
+              id: "Owner ${ind + 1}",
               title: "Song ${ind + 1}",
             );
           },
@@ -464,7 +464,7 @@ Widget iconWidget(context,bool isLik,plname, email, id,func,changeLike,VoidCallb
 
 // Song Component
 Widget songComp({
-  required String owner,
+  required String id,
   required String title,
   bool isAdd = true,
 }) {
@@ -473,7 +473,7 @@ Widget songComp({
     child: Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Expanded(child: SongIndiComp(title: title, owner: owner)),
+        Expanded(child: SongIndiComp(title: title, id:id)),
         const SizedBox(width: 8),
         if (!isAdd)
           const Icon(
