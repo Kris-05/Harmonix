@@ -41,4 +41,28 @@ class SpotifyService {
     }
     return _accessToken;
   }
+
+  // Fetch top artists from Spotify
+  static Future<List<Map<String, dynamic>>> getTopArtists() async {
+    final String token = await getAccessToken();
+
+    final response = await http.get(
+      Uri.parse("https://api.spotify.com/v1/browse/new-releases"),
+      headers: {"Authorization": "Bearer $token"},
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      List<dynamic> items = data['albums']['items'];
+
+      return items.map((item) {
+        return {
+          "name": item['artists'][0]['name'],  // Get the first artist's name
+          "imgPath": item['images'][0]['url'], // Album image as artist image
+        };
+      }).toList();
+    } else {
+      throw Exception("Failed to fetch artists: ${response.body}");
+    }
+  }
 }

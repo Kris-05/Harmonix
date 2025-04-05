@@ -48,13 +48,13 @@ class SongsPage extends ConsumerWidget {
         "imgPath": "https://i.scdn.co/image/ab67616d0000b273b6b3b7f26f0bc0e0197163a0",
         "name": "Arabic Kuthu",
         "artist": "Anirudh Ravichander",
-        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
+        "trackId": "6yvxu91deFKt3X1QoV6qMv",
       },
       {
         "imgPath": "https://i.scdn.co/image/ab67616d0000b2736d97b3dc154dfdbe2321fb5c",
         "name": "Chuttamalle",
         "artist": "Shilpa Rao, Anirudh Ravichander",
-        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
+        "trackId": "1bxzr3JK05fMTcweGAZUHp",
       },
       {
         "imgPath": "https://i.scdn.co/image/ab67616d0000b273c812fd378635732ad755733d",
@@ -78,7 +78,7 @@ class SongsPage extends ConsumerWidget {
             mSpacer(),
             recentlyPlayedUI(), // top bar
             mSpacer(),
-            recentlyPlayedList(mRecentPlayedList, musicNotifier), // recently played
+            recentlyPlayedList(mRecentPlayedList, ref, musicNotifier), // recently played
             playListUI(),
             mSpacer(mHeight: 20),
             editorPicksUI(mEditorPicksList, musicNotifier),
@@ -112,7 +112,9 @@ class SongsPage extends ConsumerWidget {
     );
   }
 
-  Widget recentlyPlayedList(List<Map<String, dynamic>> songs, MusicNotifier notifier){
+  Widget recentlyPlayedList(List<Map<String, dynamic>> songs, WidgetRef ref,MusicNotifier notifier){
+    final musicNotifier = ref.read(musicProvider.notifier);
+
     return SizedBox(
       height: 150,
       child: ListView.builder(
@@ -121,7 +123,8 @@ class SongsPage extends ConsumerWidget {
         itemBuilder: (_, i) {
           return GestureDetector(
             onTap: () {
-              notifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath'], songs[i]['trackId'],);
+              print("Clicked song - ${songs[i]['name']}");
+              musicNotifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath'], songs[i]['trackId'],);
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),

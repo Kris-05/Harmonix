@@ -18,7 +18,8 @@ class PlaylistSpecificPage extends StatefulWidget {
     required this.isLiked,
     required this.bgColor,
     required this.playListName,
-    required this.id, required this.onUpdate,
+    required this.id,
+    required this.onUpdate,
   });
 
   @override
@@ -30,7 +31,7 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
   ScrollController _scrollController = ScrollController();
   bool showTitleInAppBar = false;
   bool isAddingSongs = false;
-  bool isLiked=false;
+  bool isLiked = false;
 
   // Fetch playlist using Future to reload on every build
   late Future<List<dynamic>> _playlistFuture;
@@ -55,23 +56,24 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
     });
   }
 
-  
-  void _fetchPlaylist(){
-    setState(()  {
-      _playlistFuture =  Playlistapi.getPlayListSongs(
+  void _fetchPlaylist() {
+    setState(() {
+      _playlistFuture = Playlistapi.getPlayListSongs(
         id: widget.id.toString(),
         email: "sakthi@gmail.com",
       );
     });
   }
 
-  void _fetchLike()async{
-    isLiked=await Playlistapi.isPlaylistLiked(id: widget.id.toString(),
-        email: "sakthi@gmail.com",);
+  void _fetchLike() async {
+    isLiked = await Playlistapi.isPlaylistLiked(
+      id: widget.id.toString(),
+      email: "sakthi@gmail.com",
+    );
     print("\n\n\nisLIked::$isLiked\n\n\n\n");
 
     setState(() {
-    isLiked = isLiked;
+      isLiked = isLiked;
     });
   }
 
@@ -82,13 +84,15 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
     });
   }
 
-  void changeLike()async {
-    await Playlistapi.ChangeLike(id: widget.id.toString(),
-        email: "sakthi@gmail.com",);
+  void changeLike() async {
+    await Playlistapi.ChangeLike(
+      id: widget.id.toString(),
+      email: "sakthi@gmail.com",
+    );
     print("Like Changed");
 
     setState(() {
-      isLiked=!isLiked;
+      isLiked = !isLiked;
     });
   }
 
@@ -121,7 +125,6 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
             ),
           ),
 
-          
           isAddingSongs
               ? Column(
                 children: [
@@ -143,9 +146,8 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
                   ),
                   Expanded(
                     child: SearchPageLib(
-                      onSearched:
-                          _onSongsAdded,
-                      id: widget.id// Callback to refresh after adding
+                      onSearched: _onSongsAdded,
+                      id: widget.id, // Callback to refresh after adding
                     ),
                   ),
                 ],
@@ -253,21 +255,20 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
                                 widget.playListName,
                                 "email",
                                 widget.id,
-                                (){
+                                () {
                                   setState(() {
-                                    isAddingSongs=true;
+                                    isAddingSongs = true;
                                   });
                                 },
                                 changeLike,
                                 widget.onUpdate,
-                              
                               ),
                               const Spacer(),
                               const CircleAvatar(),
                             ],
                           ),
                           mSpacer(),
-                 FutureBuilder<List<dynamic>>(
+                          FutureBuilder<List<dynamic>>(
                             future: _playlistFuture,
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
@@ -303,8 +304,8 @@ class _PlaylistSpecificPageState extends State<PlaylistSpecificPage> {
                               );
                             },
                           ),
-                        
-                        mSpacer(mHeight: 30),
+
+                          mSpacer(mHeight: 30),
                         ],
                       ),
                     ),
@@ -413,7 +414,16 @@ Widget ownerRow(String owner) {
 }
 
 // Playlist Actions (Add/Delete)
-Widget iconWidget(context,bool isLik,plname, email, id,func,changeLike,VoidCallback onUp) {
+Widget iconWidget(
+  context,
+  bool isLik,
+  plname,
+  email,
+  id,
+  func,
+  changeLike,
+  VoidCallback onUp,
+) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -430,7 +440,7 @@ Widget iconWidget(context,bool isLik,plname, email, id,func,changeLike,VoidCallb
             },
             child: Icon(
               Icons.favorite,
-              color: isLik?Color(0xff1ED760):Color(0xffB3B3B3),
+              color: isLik ? Color(0xff1ED760) : Color(0xffB3B3B3),
               size: 25,
             ),
           ),
@@ -443,7 +453,7 @@ Widget iconWidget(context,bool isLik,plname, email, id,func,changeLike,VoidCallb
           ),
           mSpacer(mWidth: 40),
           InkWell(
-            onTap: ()async {
+            onTap: () async {
               print("Del Clicked!!");
               try {
                 await Playlistapi.deletePlaylist(playListName: plname, id: id);

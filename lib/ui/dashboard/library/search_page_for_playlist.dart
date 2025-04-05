@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:spotify_ui/api/playlistApi.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
-import 'package:spotify_ui/domain/ui_helper.dart';
+// import 'package:spotify_ui/domain/ui_helper.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:spotify_ui/services/ spotify_services.dart';
+import 'package:spotify_ui/services/spotify_services.dart';
 
 class SearchPageLib extends StatefulWidget {
   void Function() onSearched;
