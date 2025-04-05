@@ -1,12 +1,13 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:spotify_ui/services/emotion_service.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:spotify_ui/services/emotion_service.dart';
 import 'package:spotify_ui/services/spotify_services.dart';
-// Top-level function for isolate processing
+
+// Isolate function for emotion processing
 Future<Map<String, dynamic>?> _processEmotionInIsolate(String imagePath) async {
   try {
     return await EmotionService.detectEmotion(XFile(imagePath));
@@ -26,10 +27,39 @@ class _SearchPageState extends State<SearchPage> {
   final GlobalKey<_SearchBarUIState> _searchBarKey = GlobalKey();
   bool _isProcessingImage = false;
 
-  void _onSearch(String query) {
+  Future<void> _onSearch(String query) async {
     final searchBarState = _searchBarKey.currentState;
-    searchBarState?._searchController.text = query;
-    searchBarState?._fetchTracks(query);
+    if (searchBarState == null) return;
+
+    searchBarState._searchController.text = query;
+    searchBarState.setState(() => searchBarState._isSearching = true);
+
+    try {
+      List<dynamic> tracks = [];
+      
+      if (['happy', 'sad', 'angry', 'neutral'].contains(query.toLowerCase())) {
+        // Try audio features first, fallback to emotion search
+        try {
+          tracks = await SpotifyService.getTracksByAudioFeatures(query);
+        } catch (e) {
+          tracks = await SpotifyService.getTracksByEmotion(query);
+        }
+      } else {
+        tracks = await searchBarState._fetchTracks(query);
+      }
+
+      searchBarState.setState(() => searchBarState._searchResults = tracks);
+    } catch (e) {
+      if (searchBarState.mounted) {
+        ScaffoldMessenger.of(searchBarState.context).showSnackBar(
+          SnackBar(content: Text('Search error: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (searchBarState.mounted) {
+        searchBarState.setState(() => searchBarState._isSearching = false);
+      }
+    }
   }
 
   Future<void> _handleCameraPress() async {
@@ -43,26 +73,21 @@ class _SearchPageState extends State<SearchPage> {
       );
 
       if (image == null || !mounted) return;
-
+      // Find the user's emotion
       final result = await compute(_processEmotionInIsolate, image.path);
-      
-      // Clean up the temporary image file
       final file = File(image.path);
       if (await file.exists()) await file.delete();
 
       if (!mounted) return;
 
-      if (result == null) {
+      if (result == null || result.containsKey('error')) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No emotion detected')),
-        );
-      } else if (result.containsKey('error')) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${result['error']}')),
+          SnackBar(content: Text(result?['error'] ?? 'No emotion detected')),
         );
       } else {
-        final emotion = result['dominant_emotion']?.toString().toLowerCase() ?? 'unknown';
-        _onSearch(emotion);
+        // Get the dominant emotion
+        final emotion = result['dominant_emotion']?.toString().toLowerCase() ?? 'neutral';
+        _onSearch(emotion); // searches based on the emotion.
       }
     } catch (e) {
       if (mounted) {
@@ -83,7 +108,7 @@ class _SearchPageState extends State<SearchPage> {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTitleUI(context),
+            _buildTitleUI(),
             Expanded(
               child: SearchBarUI(
                 key: _searchBarKey,
@@ -96,9 +121,9 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildTitleUI(BuildContext context) {
+  Widget _buildTitleUI() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 11.0, vertical: 10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           const Text(
@@ -112,15 +137,12 @@ class _SearchPageState extends State<SearchPage> {
           const Spacer(),
           IconButton(
             icon: _isProcessingImage
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
+                ? const CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
                   )
-                : const Icon(Icons.camera_enhance_outlined, size: 30, color: Colors.white),
+                : const Icon(Icons.camera_enhance_outlined, 
+                    size: 30, color: Colors.white),
             onPressed: _handleCameraPress,
           ),
         ],
@@ -130,9 +152,12 @@ class _SearchPageState extends State<SearchPage> {
 }
 
 class SearchBarUI extends StatefulWidget {
-  final Function(String)? onSearch;
+  final Function(String) onSearch;
   
-  const SearchBarUI({super.key, required this.onSearch});
+  const SearchBarUI({
+    super.key,
+    required this.onSearch,
+  });
 
   @override
   State<SearchBarUI> createState() => _SearchBarUIState();
@@ -143,25 +168,20 @@ class _SearchBarUIState extends State<SearchBarUI> {
   List<dynamic> _searchResults = [];
   bool _isSearching = false;
 
-  void _performSearch() {
-    final query = _searchController.text.trim();
-    if (query.isNotEmpty) {
-      widget.onSearch?.call(query);
-    }
-  }
-
-  Future<void> _fetchTracks(String query) async {
+  Future<List<dynamic>> _fetchTracks(String query) async {
     if (query.isEmpty) {
       setState(() => _searchResults = []);
-      return;
+      return [];
     }
 
     setState(() => _isSearching = true);
-
+    
     try {
-      String accessToken = await SpotifyService.getAccessToken();
+      final accessToken = await SpotifyService.getAccessToken();
       final response = await http.get(
-        Uri.parse("https://api.spotify.com/v1/search?q=${Uri.encodeQueryComponent(query)}&type=track&limit=10"),
+        Uri.parse(
+          "https://api.spotify.com/v1/search?q=${Uri.encodeQueryComponent(query)}&type=track&limit=10"
+        ),
         headers: {
           "Authorization": "Bearer $accessToken",
           "Content-Type": "application/json"
@@ -170,20 +190,22 @@ class _SearchBarUIState extends State<SearchBarUI> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        setState(() => _searchResults = data['tracks']['items'] ?? []);
-      } else {
-        throw Exception('Failed to load tracks: ${response.statusCode}');
+        final tracks = data['tracks']['items'] ?? [];
+        setState(() => _searchResults = tracks);
+        return tracks;
       }
+      throw Exception('Failed to load tracks: ${response.statusCode}');
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Search error: ${e.toString()}')),
-        );
-      }
       setState(() => _searchResults = []);
+      rethrow;
     } finally {
-      if (mounted) setState(() => _isSearching = false);
+      setState(() => _isSearching = false);
     }
+  }
+
+  void _performSearch() {
+    final query = _searchController.text.trim();
+    if (query.isNotEmpty) widget.onSearch(query);
   }
 
   @override
@@ -191,86 +213,88 @@ class _SearchBarUIState extends State<SearchBarUI> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 11.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: TextField(
-              controller: _searchController,
-               textAlignVertical: TextAlignVertical.center, // Centers the text
-              decoration: InputDecoration(
-                hintText: "Search songs, artists...",
-                hintStyle: const TextStyle(color: Colors.white54),
-                prefixIcon: IconButton(
-                  icon: const Icon(Icons.search, color: Colors.white54),
-                  onPressed: _performSearch,
-                ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white.withOpacity(0.1),
+              hintText: "Search songs, artists...",
+              hintStyle: const TextStyle(color: Colors.white54),
+              prefixIcon: IconButton(
+                icon: const Icon(Icons.search, color: Colors.white54),
+                onPressed: _performSearch, // Add this line
               ),
-              style: const TextStyle(color: Colors.white),
-              onSubmitted: (_) => _performSearch(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              suffixIcon: _isSearching
+                  ? const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : null,
             ),
-
+            style: const TextStyle(color: Colors.white),
+            onSubmitted: (_) => _performSearch(),
           ),
         ),
         Expanded(
-          child: _isSearching
-              ? const Center(child: CircularProgressIndicator())
-              : _searchResults.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'Search for songs',
-                        style: TextStyle(color: Colors.white54, fontSize: 16),
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.only(top: 16),
-                      itemCount: _searchResults.length,
-                      itemBuilder: (context, index) {
-                        final track = _searchResults[index];
-                        final artists = (track['artists'] as List)
-                            .map((a) => a['name'])
-                            .join(', ');
-                        final duration = Duration(
-                            milliseconds: track['duration_ms'] as int);
-                        final durationText =
-                            '${duration.inMinutes}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}';
+          child: _searchResults.isEmpty
+              ? const Center(
+                  child: Text(
+                    'Search for songs',
+                    style: TextStyle(color: Colors.white54, fontSize: 16),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.only(top: 8),
+                  itemCount: _searchResults.length,
+                  itemBuilder: (context, index) {
+                    final track = _searchResults[index];
+                    final artists = (track['artists'] as List)
+                        .map((a) => a['name'])
+                        .join(', ');
+                    final duration = Duration(
+                        milliseconds: track['duration_ms'] as int);
+                    final durationText =
+                        '${duration.inMinutes}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}';
 
-                        return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: Image.network(
-                              track['album']['images'][0]['url'],
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          title: Text(
-                            track['name'],
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500),
-                          ),
-                          subtitle: Text(
-                            artists,
-                            style: const TextStyle(color: Colors.white54),
-                          ),
-                          trailing: Text(
-                            durationText,
-                            style: const TextStyle(color: Colors.white54),
-                          ),
-                          onTap: () {
-                            print('Selected track: ${track['name']} (ID: ${track['id']})');
-                          },
-                        );
-                      },
-                    ),
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: Image.network(
+                          track['album']['images'][0]['url'],
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      title: Text(
+                        track['name'],
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500),
+                      ),
+                      subtitle: Text(
+                        artists,
+                        style: const TextStyle(color: Colors.white54),
+                      ),
+                      trailing: Text(
+                        durationText,
+                        style: const TextStyle(color: Colors.white54),
+                      ),
+                      onTap: () => print('Selected: ${track['name']}'),
+                    );
+                  },
+                ),
         ),
       ],
     );
