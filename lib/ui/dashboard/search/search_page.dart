@@ -4,6 +4,7 @@ import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
 import 'package:http/http.dart' as http;
+import 'package:spotify_ui/providers/music_provider.dart';
 import 'dart:convert';
 import 'package:spotify_ui/services/spotify_services.dart';
 // import 'package:spotify_ui/ui/dashboard/songs/widgets/music_player.dart';
@@ -67,6 +68,8 @@ class SearchBarUI extends ConsumerStatefulWidget {
 class _SearchBarUIState extends ConsumerState<SearchBarUI> {
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
+  List<dynamic> _trackQueue = [];
+
   bool _isSearching = false;
 
   // for fetching song
@@ -75,6 +78,7 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
     if (query.isEmpty) {
       setState(() {
         _searchResults = [];
+        _trackQueue = [];
       });
       return;
     }
@@ -101,17 +105,21 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
         final data = json.decode(response.body);
         setState(() {
           _searchResults = data['tracks']['items'] ?? [];
+          _trackQueue = data['tracks']['items'].map((track) => track['id']).toList();
         });
+        print("Track Queue: $_trackQueue"); // for debugging
       } else {
         print("Error fetching tracks: ${response.statusCode}");
         setState(() {
           _searchResults = [];
+          _trackQueue = [];
         });
       }
     } catch (e) {
       print("Error: $e");
       setState(() {
         _searchResults = [];
+        _trackQueue = [];
       });
     } finally {
       setState(() {
@@ -239,10 +247,32 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
       ),
       onTap: () {
         print('Selected track: ${track['name']} (ID: ${track['id']})');
+
+        final musicNotifier = ref.read(musicProvider.notifier);
+        final currentTrackId = track['id'];
+
+         // Set the full queue
+        musicNotifier.setQueue(plQueue: _trackQueue);
+
+        // Get prev and next based on current song
+        final pre = musicNotifier.getPlPre(currentTrackId);
+        final nxt = musicNotifier.getPlNext(currentTrackId);
+
+        // Set song details
+        musicNotifier.setSong(
+          name: track['name'],
+          artist: (track['artists'] as List).map((e) => e['name']).join(', '),
+          image: track['album']['images'][0]['url'],
+          trackId: currentTrackId,
+          pre: pre,
+          nxt: nxt,
+          plQueue: _trackQueue,
+        );
+
         Navigator.pushNamed(
           context, 
           AppRoutes.songsPage, 
-          arguments: {'trackId': track['id'] } , // Replace with actual track ID
+          arguments: {'trackId': track['id'] } ,
         );
       },
     );

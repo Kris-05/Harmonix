@@ -124,7 +124,7 @@ class SongsPage extends ConsumerWidget {
           return GestureDetector(
             onTap: () {
               print("Clicked song - ${songs[i]['name']}");
-              musicNotifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath'], songs[i]['trackId'],);
+              musicNotifier.setSong(name: songs[i]['name'],artist:  songs[i]['artist'],image:  songs[i]['imgPath'],trackId:  songs[i]['trackId'],);
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -218,7 +218,7 @@ class SongsPage extends ConsumerWidget {
             itemBuilder: (_, i) {
               return GestureDetector(
                 onTap: () {
-                  notifier.setSong(songs[i]['name'], songs[i]['artist'], songs[i]['imgPath'], songs[i]['trackId']);
+                  notifier.setSong(name: songs[i]['name'],artist:  songs[i]['artist'],image:  songs[i]['imgPath'],trackId: songs[i]['trackId']);
                 },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
