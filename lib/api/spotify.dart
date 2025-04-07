@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:spotify_ui/services/%20spotify_services.dart';
+import 'package:spotify_ui/services/spotify_service.dart';
 
 class Spotify {
 

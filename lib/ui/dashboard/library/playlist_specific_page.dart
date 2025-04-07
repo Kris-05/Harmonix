@@ -176,9 +176,9 @@ void _fetchPlaylist() {
               left: 0,
               right: 0,
               child: MusicSlab(
-                songName: selectedSong.songName,
-                artistName: selectedSong.artistName,
-                imgPath: selectedSong.imgPath,
+                // songName: selectedSong.songName,
+                // artistName: selectedSong.artistName,
+                // imgPath: selectedSong.imgPath,
                 trackId: selectedSong.trackId,
                 player: _player,
                 pre:selectedSong.pre,

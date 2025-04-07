@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:spotify_ui/api/auth.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
+import 'package:spotify_ui/services/spotify_service.dart';
 import 'package:spotify_ui/ui/custom_widgets/circular_img.dart';
 import 'package:spotify_ui/ui/custom_widgets/custom_button.dart';
 import 'package:spotify_ui/ui/dashboard/home_page.dart';
-import '../../services/spotify_services.dart';
 
 // ignore: must_be_immutable
 class ChooseArtist extends StatefulWidget {

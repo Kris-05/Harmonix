@@ -117,7 +117,7 @@ class _MusicSlabState extends ConsumerState<MusicSlab> {
         Navigator.pushNamed(
           context,
           AppRoutes.songsPage,
-          arguments: {'trackId': trackId,'pre':pre,'nxt':nxt}, // Pass trackId as an argument
+          arguments: {'trackId': _currentTrackId,'pre':widget.pre,'nxt':widget.nxt}, // Pass trackId as an argument
         );
       },
       child: Container(

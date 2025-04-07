@@ -1,101 +1,16 @@
-import 'dart:io';
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
 import 'package:http/http.dart' as http;
 import 'package:spotify_ui/providers/music_provider.dart';
+import 'package:spotify_ui/services/spotify_service.dart';
 import 'dart:convert';
-import 'package:spotify_ui/services/spotify_services.dart';
 // import 'package:spotify_ui/ui/dashboard/songs/widgets/music_player.dart';
 
-class SearchPage extends StatefulWidget {
+class SearchPage extends StatelessWidget {
   const SearchPage({super.key});
-
-  @override
-  State<SearchPage> createState() => _SearchPageState();
-}
-
-class _SearchPageState extends State<SearchPage> {
-  final GlobalKey<_SearchBarUIState> _searchBarKey = GlobalKey();
-  bool _isProcessingImage = false;
-
-  Future<void> _onSearch(String query) async {
-    final searchBarState = _searchBarKey.currentState;
-    if (searchBarState == null) return;
-
-    searchBarState._searchController.text = query;
-    searchBarState.setState(() => searchBarState._isSearching = true);
-
-    try {
-      List<dynamic> tracks = [];
-      
-      if (['happy', 'sad', 'angry', 'neutral'].contains(query.toLowerCase())) {
-        // Try audio features first, fallback to emotion search
-        try {
-          tracks = await SpotifyService.getTracksByAudioFeatures(query);
-        } catch (e) {
-          tracks = await SpotifyService.getTracksByEmotion(query);
-        }
-      } else {
-        tracks = await searchBarState._fetchTracks(query);
-      }
-
-      searchBarState.setState(() => searchBarState._searchResults = tracks);
-    } catch (e) {
-      if (searchBarState.mounted) {
-        ScaffoldMessenger.of(searchBarState.context).showSnackBar(
-          SnackBar(content: Text('Search error: ${e.toString()}')),
-        );
-      }
-    } finally {
-      if (searchBarState.mounted) {
-        searchBarState.setState(() => searchBarState._isSearching = false);
-      }
-    }
-  }
-
-  Future<void> _handleCameraPress() async {
-    if (_isProcessingImage) return;
-    setState(() => _isProcessingImage = true);
-
-    try {
-      final image = await ImagePicker().pickImage(
-        source: ImageSource.camera,
-        imageQuality: 70,
-      );
-
-      if (image == null || !mounted) return;
-      // Find the user's emotion
-      final result = await compute(_processEmotionInIsolate, image.path);
-      final file = File(image.path);
-      if (await file.exists()) await file.delete();
-
-      if (!mounted) return;
-
-      if (result == null || result.containsKey('error')) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result?['error'] ?? 'No emotion detected')),
-        );
-      } else {
-        // Get the dominant emotion
-        final emotion = result['dominant_emotion']?.toString().toLowerCase() ?? 'neutral';
-        _onSearch(emotion); // searches based on the emotion.
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Camera error: ${e.toString()}')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isProcessingImage = false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,21 +20,20 @@ class _SearchPageState extends State<SearchPage> {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTitleUI(),
+            mSpacer(),
+            titleUI(),
             mSpacer(mHeight: 14),
-            Expanded(
-              child: SearchBarUI(
-                key: _searchBarKey,
-                onSearch: _onSearch,
-              ),
-            ),
+            const Expanded(
+              child: SearchBarUI()
+            ), // Wrap with Expanded
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTitleUI() {
+  // Search + camera 
+  Widget titleUI() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 11.0, vertical: 10.0),
       child: Row(
@@ -133,16 +47,8 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
           const Spacer(),
-          IconButton(
-            icon: _isProcessingImage
-                ? const CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  )
-                : const Icon(Icons.camera_enhance_outlined, 
-                    size: 30, color: Colors.white),
-            onPressed: _handleCameraPress,
-          ),
+          // for emotion detection
+          Icon(Icons.camera_enhance_outlined, size: 30, color: Colors.white),
           mSpacer(mWidth: 20),
         ],
       ),
@@ -150,13 +56,10 @@ class _SearchPageState extends State<SearchPage> {
   }
 }
 
+// search bar 
+// The UI changes dynamically when searching (loading, results update)
 class SearchBarUI extends ConsumerStatefulWidget {
-  final Function(String) onSearch;
-  
-  const SearchBarUI({
-    super.key,
-    required this.onSearch,
-  });
+  const SearchBarUI({super.key});
 
   @override
   _SearchBarUIState createState() => _SearchBarUIState();
@@ -169,7 +72,9 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
 
   bool _isSearching = false;
 
-  Future<List<dynamic>> _fetchTracks(String query) async {
+  // for fetching song
+  Future<void> _fetchTracks(String query) async {
+    // check if query is empty
     if (query.isEmpty) {
       setState(() {
         _searchResults = [];
@@ -178,14 +83,18 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
       return;
     }
 
-    setState(() => _isSearching = true);
-    
+    setState(() {
+      _isSearching = true;
+    });
+
     try {
-      final accessToken = await SpotifyService.getAccessToken();
+      String accessToken = await SpotifyService.getAccessToken();
+      
+      final url = Uri.parse("https://api.spotify.com/v1/search?q=${Uri.encodeQueryComponent(query)}&type=track&limit=10");
+      
+      // Sends request with the access token for authentication.
       final response = await http.get(
-        Uri.parse(
-          "https://api.spotify.com/v1/search?q=${Uri.encodeQueryComponent(query)}&type=track&limit=10"
-        ),
+        url,
         headers: {
           "Authorization": "Bearer $accessToken",
           "Content-Type": "application/json"
@@ -213,13 +122,16 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
         _trackQueue = [];
       });
     } finally {
-      setState(() => _isSearching = false);
+      setState(() {
+        _isSearching = false;
+      });
     }
   }
 
-  void _performSearch() {
-    final query = _searchController.text.trim();
-    if (query.isNotEmpty) widget.onSearch(query);
+  // Removes extra spaces and calls fn
+  void _onSearch() {
+    String searchText = _searchController.text.trim();
+    _fetchTracks(searchText); // query
   }
 
   @override
@@ -240,27 +152,18 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
               controller: _searchController,
               cursorColor: AppColors.primaryColor,
               autofocus: false,
-              onSubmitted: (_) => _performSearch(),
+              onSubmitted: (value) => _onSearch(),
               decoration: InputDecoration(
                 hintText: "Search songs, artists...",
                 hintStyle: const TextStyle(color: Colors.black),
                 border: InputBorder.none,
                 prefixIcon: IconButton(
                   icon: const Icon(Icons.search, size: 30),
-                  onPressed: _performSearch,
+                  onPressed: _onSearch,
                 ),
-                suffixIcon: _isSearching
-                    ? const Padding(
-                        padding: EdgeInsets.all(8),
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.black,
-                        ),
-                      )
-                    : null,
                 focusedBorder: InputBorder.none,
                 enabledBorder: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 15),
+                contentPadding: EdgeInsets.symmetric(vertical: 15), // Adjusts text alignment
               ),
             ),
           ),
@@ -291,16 +194,19 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
   }
 
   Widget _buildTrackItem(Map<String, dynamic> track) {
+    // Converts list of artists into a single string.
     String artists = (track['artists'] as List<dynamic>?)
         ?.map<String>((artist) => artist['name'].toString())
         .join(', ') ?? 'Unknown Artist';
 
+    // Formats Song Duration (e.g., "3:45")
     String durationText = '0:00';
     if (track['duration_ms'] != null) {
       Duration duration = Duration(milliseconds: track['duration_ms'] as int);
       durationText = '${duration.inMinutes}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}';
     }
 
+    // Displays song info & prints track name on tap.
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: (track['album']?['images'] as List<dynamic>?)?.isNotEmpty == true

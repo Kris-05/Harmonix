@@ -80,7 +80,7 @@ class SongsPage extends ConsumerWidget {
             recentlyPlayedUI(), // top bar
             mSpacer(),
             recentlyPlayedList(mRecentPlayedList, ref, musicNotifier), // recently played
-            playListUI(),
+            playListUI(context),
             mSpacer(mHeight: 20),
             editorPicksUI(mEditorPicksList, musicNotifier),
           ],
