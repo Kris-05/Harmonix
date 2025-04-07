@@ -5,12 +5,13 @@
   import 'package:flutter_riverpod/flutter_riverpod.dart';
   import 'package:palette_generator/palette_generator.dart';
   import 'package:spotify/spotify.dart';
-import 'package:spotify_ui/domain/app_routes.dart';
+  import 'package:spotify_ui/cameraCapture.dart';
+  import 'package:spotify_ui/domain/app_routes.dart';
   import 'package:spotify_ui/domain/custom_strings.dart';
   import 'package:spotify_ui/domain/ui_helper.dart';
-  // import 'package:spotify_ui/providers/music_provider.dart';
   import 'package:spotify_ui/domain/app_colors.dart';
-import 'package:spotify_ui/providers/music_provider.dart';
+  import 'package:spotify_ui/providers/gesture_provider.dart';
+  import 'package:spotify_ui/providers/music_provider.dart';
   import 'package:spotify_ui/ui/dashboard/songs/model/Music.dart';
   import 'package:spotify_ui/ui/dashboard/songs/widgets/artwork_image.dart';
   import 'package:spotify_ui/ui/dashboard/songs/widgets/lyrics_page.dart';
@@ -31,18 +32,93 @@ import 'package:spotify_ui/providers/music_provider.dart';
 
       final player = AudioPlayer();
       late Music music; 
+      VideoService videoService = VideoService();
       // 7CyPwkp0oE8Ro9Dd5CUDjW - one of the girls
       // 3Fg5uhtWBlW0es8GSqQ6Ff - mortals
       // 3h4T9Bg8OVSUYa6danHeH5 - animals
       // 28pMkd9JEFnupyk4SnCTPn - kanmoodi thirakum pothu
-
-      @override
+      // Initialize before running app
+      
+    @override
       void initState() {
         // print("hello");
         music = Music(trackId: widget.trackId);
         fetchAndPlayMusic();
         super.initState();
+        
+
+        final gestureNotifier = ref.read(gestureProvider.notifier);
+        // final gestureState = ref.watch(gestureProvider);
+        final isGestureNaviActivated=gestureNotifier.getGesture();
+
+        if(isGestureNaviActivated){
+           print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  Fucker !!!!!  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\ ");
+              initCameraFunction(videoService);
+             
+        }
+        else{
+          print("Gesture Is in Off State");
+        }
       }
+
+      @override
+      void dispose() {
+        // / dispose audio player
+         // stop camera and close socket if initialized
+        videoService.stopSendingFrames();
+        videoService.deActivateCamera();
+        super.dispose();
+      }
+
+
+      void initCameraFunction(VideoService videoService)async {
+        
+        await videoService.initializeCamera();
+        videoService.connectSocket(); // Connect socket
+        await videoService.startSendingFrames(); // Start sending frames
+        final container = ProviderContainer();
+        _listenToGestureStream(videoService, container);
+      }
+
+      void _listenToGestureStream(VideoService videoService, ProviderContainer container) {
+              final musicNotifier = ref.read(musicProvider.notifier);
+              
+                videoService.gestureStream.listen((gesture) {
+                  // final music = container.read(musicNotifierProvider.notifier);
+
+                  switch (gesture.toLowerCase()) {
+                    case 'play':
+                      // music.play();
+                      print('play');
+                      musicNotifier.togglePlayPause();
+                      break;
+                    case 'next':
+                    case 'next2':
+                      Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.songsPage,
+                                    arguments: {'trackId': musicNotifier.getPlNext(widget.trackId),'pre':musicNotifier.getPlPre(widget.nxt),'nxt':musicNotifier.getPlNext(widget.nxt)},
+                      );
+
+                      break;
+                    case 'previous':
+                    case 'previous2':
+                      // music.previous();
+                      print('pre');
+
+                      musicNotifier.setSong(name:"Pree",artist:  "meeee", image: "https://i.scdn.co/image/ab67616d0000b27337677af5b4f23fe9dc8a3c04",trackId:  widget.pre);
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.songsPage,
+                                    arguments: {'trackId': widget.pre,'pre':musicNotifier.getPlPre(widget.pre),'nxt':musicNotifier.getPlNext(widget.pre)},
+                      );
+                      break;
+                    default:
+                      print("Unknown gesture: $gesture");
+                  }
+                });
+              }
+
 
       Future<void> fetchAndPlayMusic() async {
         try {
@@ -115,7 +191,9 @@ import 'package:spotify_ui/providers/music_provider.dart';
     Widget build(BuildContext context) {
     final musicState = ref.watch(musicProvider);
     final musicNotifier = ref.read(musicProvider.notifier);
-
+    final gestureState = ref.watch(gestureProvider);
+    final gestureNotifier = ref.read(gestureProvider.notifier);
+    
       return Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

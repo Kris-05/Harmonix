@@ -3,9 +3,12 @@ from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_socketio import SocketManager
 import socketio
-from app.routers import Accounts, Gesture
+
+from app.routers import Accounts, Gesture,playlist
+
 from app.db.database import init_db
 from app.services import Gesture as gs
+
 
 
 
@@ -38,5 +41,7 @@ def read_root():
     return {"message": "FastAPI is working"}
 
 
+
 app.include_router(Accounts.router)
 app.include_router(Gesture.router)
+app.include_router(playlist.router)

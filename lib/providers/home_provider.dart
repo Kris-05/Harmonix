@@ -9,3 +9,6 @@ class HomeNotifier extends StateNotifier<int> {
 }
 
 final homeProvider = StateNotifierProvider<HomeNotifier, int>((ref) => HomeNotifier());
+
+
+

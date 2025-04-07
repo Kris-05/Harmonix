@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as imglib;
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -17,7 +19,36 @@ class VideoService {
 
   final StreamController<String> _gestureController = StreamController<String>.broadcast();
 
-    Stream<String> get gestureStream => _gestureController.stream;
+  Stream<String> get gestureStream => _gestureController.stream;
+
+  void deActivateCamera() {
+      try {
+       
+        if (_cameraController != null && _cameraController!.value.isInitialized) {
+          _cameraController!.dispose();
+          _cameraController = null;
+        }
+
+        
+        _gestureController.close();
+
+        
+        receivePort?.close();
+        receivePort = null;
+
+        
+        isolateSendPort?.send(null); 
+        isolateSendPort = null;
+        isolateInitialized = false;
+
+        print("Camera and related resources disposed successfully.");
+      } catch (e) {
+        print("Error while disposing resources: $e");
+      }
+    }
+
+
+  
 
   Future<void> initializeCamera() async {
     cameras = await availableCameras();
@@ -35,22 +66,22 @@ class VideoService {
   }
 
   void connectSocket() {
-    socket = IO.io('http://192.168.120.28:8000/ws/socket.io/', <String, dynamic>{
-      'transports': ['websocket'],
-      'autoConnect': false,
-    });
+    // socket = IO.io('http://10.16.50.117:8000/ws/socket.io/', <String, dynamic>{
+    //   'transports': ['websocket'],
+    //   'autoConnect': false,
+    // });
 
-    socket!.connect();
+    // socket!.connect();
 
-    socket!.onConnect((_) {
-      print("WebSocket connected");
-    });
+    // socket!.onConnect((_) {
+    //   print("WebSocket connected");
+    // });
 
-    socket!.onDisconnect((_) => print("WebSocket disconnected"));
+    // socket!.onDisconnect((_) => print("WebSocket disconnected"));
 
-    socket!.onError((error) {
-      print("WebSocket connection error: $error");
-    });
+    // socket!.onError((error) {
+    //   print("WebSocket connection error: $error");
+    // });
   }
 
   Future<void> startSendingFrames() async {
@@ -110,6 +141,9 @@ class VideoService {
 
 }
 
+
+
+
 // Convert YUV420 to RGB
 Uint8List convertYUV420toRGB(CameraImage image) {
   final int width = image.width;
@@ -146,49 +180,118 @@ Uint8List convertYUV420toRGB(CameraImage image) {
   return Uint8List.fromList(imglib.encodeJpg(img));
 }
 
+
+const int frameBatchSize = 3;
+List<String> gesturePool=List.empty(growable: true);
+
+String finalizeGesture(List<String> gesturePool) {
+
+  print("\n\n\n\n\n Finalize Function \n\n\n\n\n");
+  final filtered = gesturePool.where((g) => g != "unknown").toList();
+
+  if (filtered.isEmpty) return "unknown";
+
+  final Map<String, int> freqMap = {};
+
+  for (var g in filtered) {
+    freqMap[g] = (freqMap[g] ?? 0) + 1;
+  }
+
+ 
+  String mostFrequent = filtered.first;
+  int maxCount = 0;
+
+  freqMap.forEach((gesture, count) {
+    if (count > maxCount) {
+      mostFrequent = gesture;
+      maxCount = count;
+    }
+  });
+
+  print("\n\n\n\n\n\n\n\n\n\n\n Most:$mostFrequent \n\n\n\n\n\n\n\n\n\n");
+
+  return mostFrequent;
+}
+
+
+Future<void> sendFrameToServer(Uint8List frameBytes,dynamic mainSendPort,int count) async {
+  try {
+    final response = await http.post(
+      Uri.parse('http://192.168.137.5:8000/gesture'),
+      headers: {'Content-Type': 'application/octet-stream'},
+      body: frameBytes,
+    );
+
+    if (response.statusCode == 200) {
+      final gesture = jsonDecode(response.body)['gesture'];// assuming plain text response
+      print("Gesture received from API: $gesture");
+      print("$frameBatchSize,${count+1}");
+      if(frameBatchSize<=count+1) {
+        String finalGesture=finalizeGesture(gesturePool);
+        mainSendPort.send(finalGesture);
+        gesturePool.clear();
+      }
+      else{
+        gesturePool.add(gesture);
+      }
+    
+     }
+    else {
+      print("Server error: ${response.statusCode}");
+    }
+ 
+  } catch (e) {
+    print("HTTP request failed: $e");
+  }
+}
+
+
+
 void _sendFramesIsolate(dynamic args) async {
   final mainSendPort = args['mainSendPort'] as SendPort;
   final receivePort = ReceivePort();
 
   mainSendPort.send(receivePort.sendPort); // Send back the port to talk to isolate
 
-  IO.Socket socket = IO.io('http://192.168.120.28:8000/', <String, dynamic>{
-    'transports': ['websocket'],
-    'autoConnect': true,
-  });
+  // IO.Socket socket = IO.io('http://10.16.50.117:8000/', <String, dynamic>{
+  //   'transports': ['websocket'],
+  //   'autoConnect': true,
+  // });
 
-  print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\ncamera Conn\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-  socket.connect();
+  // print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\ncamera Conn\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+  // socket.connect();
 
-  socket.onConnect((_) {
-    print("Socket connected to backend.");
-  });
+  // socket.onConnect((_) {
+  //   print("Socket connected to backend.");
+  // });
 
-  socket.on('gesture', (data) {
-    if (data is String) {
-      print('\n\nGesture received in isolate: $data');
-      mainSendPort.send(data); // Send gesture back to main isolate
-    }
+  // socket.on('gesture', (data) {
+  //  String sign=data['gesture'];
+
+  //   if (sign is String) {
+  //     print('\n\nGesture received in isolate: $sign');
+  //     mainSendPort.send(sign); // Send gesture back to main isolate
+  //   }
 
 
-  print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n camera data:$data \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+  // print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n camera data:$data \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
-  });
+  // });
 
-  socket.onConnectError((error) {
-    print("Socket connect error: $error");
-  });
+  // socket.onConnectError((error) {
+  //   print("Socket connect error: $error");
+  // });
 
-  socket.onError((error) {
-    print("Socket IO error: $error");
-  });
+  // socket.onError((error) {
+  //   print("Socket IO error: $error");
+  // });
 
-  socket.onDisconnect((_) {
-    print("Socket disconnected.");
-  });
+  // socket.onDisconnect((_) {
+  //   print("Socket disconnected.");
+  // });
 
   final List<Uint8List> frameBatch = [];
-  const int frameBatchSize = 1;
+
   bool isProcessing = false;
 
   receivePort.listen((dynamic message) async {
@@ -207,13 +310,18 @@ void _sendFramesIsolate(dynamic args) async {
           isProcessing = true;
           print("Sending $frameBatchSize frames one-by-one...");
 
+          // for (var i = 0; i < frameBatchSize; i++) {
+          //   if (socket.connected) {
+          //     socket.emit('frame', frameBatch[i]);
+          //     print("Sent frame ${i + 1}/$frameBatchSize");
+          //     await Future.delayed(Duration(milliseconds: 30)); // adjustable delay
+          //   }
+          // }
+
           for (var i = 0; i < frameBatchSize; i++) {
-            if (socket.connected) {
-              socket.emit('frame', frameBatch[i]);
-              print("Sent frame ${i + 1}/$frameBatchSize");
-              await Future.delayed(Duration(milliseconds: 30)); // adjustable delay
-            }
-          }
+          await sendFrameToServer(frameBatch[i],mainSendPort,i);
+          await Future.delayed(Duration(milliseconds: 30)); // optional delay
+      }
 
           frameBatch.clear();
           isProcessing = false;
@@ -224,4 +332,9 @@ void _sendFramesIsolate(dynamic args) async {
       }
     }
   });
+
+  
+
 }
+
+

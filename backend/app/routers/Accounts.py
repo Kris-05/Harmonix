@@ -24,6 +24,7 @@ async def createAccount(user: UserModel):
         raise e
 
     except Exception as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Internal server error: {str(e)}"
@@ -39,7 +40,6 @@ async def loginUser(login_data: LoginModel):
     try:
         # Call login controller to verify user
         user = await loginUserCont(password, email)
-        
         # Check if user exists
         if not user:
             raise HTTPException(
@@ -53,6 +53,7 @@ async def loginUser(login_data: LoginModel):
         raise e
 
     except Exception as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Internal server error: {str(e)}"

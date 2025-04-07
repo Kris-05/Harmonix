@@ -9,6 +9,7 @@ from app.db.database import database,user_collection
 # Create a new user
 async def create_user(user: UserModel):
 # hashing the Password....
+    user.email=user.email.lower()
     user.password=hash_password(user.password)
 # insertting the Doc in DB........
     user_data = user.dict(by_alias=True)
@@ -23,16 +24,14 @@ async def loginUserCont(password:str,email:str):
     # verify the PassWord...
     # wrong pass
 
-    userEntry=await user_collection.find_one({"email":email})
-
-    userEntry = await user_collection.find_one({"email": email})
-
+    userEntry=await user_collection.find_one({"email":email.lower()})
 
     if not userEntry:
         print("No User Found!!")
         raise HTTPException(status_code=401, detail="No User Found!!")
     
-    userEntry["_id"] = str(userEntry["_id"])  # Convert ObjectId to str
+    userEntry["_id"] = str(userEntry["_id"]) 
+    # print(userEntry) # Convert ObjectId to str
     user=UserModel(**userEntry)
     isCorrectPass=verify_password(password,user.password)
 

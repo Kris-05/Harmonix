@@ -16,6 +16,23 @@ class PyObjectId(str):
 # User Model for MongoDB
 # chaange this incase of the change for the schema of the Doc....
 # the filed in the db
+
+# Song Model
+class SongModel(BaseModel):
+    id: str
+    name: str
+
+# Playlist Model
+class PlaylistModel(BaseModel):
+    name:str
+    id:str
+    owner: str
+    isLiked:bool
+    isPinned:bool
+    songs: List[SongModel] = []
+
+
+
 class UserModel(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     name: str
@@ -23,6 +40,8 @@ class UserModel(BaseModel):
     password: str
     gender: str
     preferred_languages: List[str] = []
+    artists: Optional[List[str]] = [] 
+    playlist: Optional[List[PlaylistModel]] = []
 
     class Config:
         populate_by_name = True
