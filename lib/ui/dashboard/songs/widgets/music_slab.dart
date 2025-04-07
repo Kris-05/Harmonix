@@ -58,6 +58,11 @@ class _MusicSlabState extends ConsumerState<MusicSlab> {
   }
 Future<void> fetchTrackInfo() async {
   try {
+      if (_currentTrackId.isEmpty) {
+        print("Track ID is empty. Skipping fetch.");
+        return;
+      }
+
     final credentials = SpotifyApiCredentials(
       CustomStrings.clientId,
       CustomStrings.clientSecret,
@@ -107,6 +112,11 @@ Future<void> fetchTrackInfo() async {
 }
 
   Future<void> getImagePalette() async {
+    if (_currentTrackId.isEmpty) {
+      print("Track ID is empty. Skipping fetch.");
+      return;
+    }
+
     final imageUrl = ref.read(trackInfoProvider)["imgPath"] ?? "";
     if (imageUrl.isNotEmpty) {
       final PaletteGenerator paletteGenerator =

@@ -53,24 +53,43 @@ class AppRoutes {
   };
 
   // Handle dynamic routes
-  static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case songsPage:
-        // Expect a Map<String, dynamic> as arguments
-        final args = settings.arguments as Map<String, dynamic>?; 
-        if (args != null && args.containsKey('trackId')) {
-          final trackId = args['trackId'] as String;
-          final pre=args['pre'] as String;
-          final nxt=args['nxt'] as String;
-          return MaterialPageRoute(
-            builder: (context) => MusicPlayer(trackId: trackId,pre: pre,nxt: nxt),
-          );
-        }
-        return _errorRoute(); // Return error if args are not valid
-      default:
-        return null; // Unknown route
-    }
+ static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
+  switch (settings.name) {
+    case songsPage:
+      final args = settings.arguments as Map<String, dynamic>?;
+
+      if (args != null &&
+          args['trackId'] is String &&
+          args['isLocal'] is bool &&
+          args['audioQueue'] is List) {
+        
+        final trackId = args['trackId'] as String;
+        final isLocal = args['isLocal'] as bool;
+        final audioQueue = List<Map<String, String>>.from(args['audioQueue']);
+
+        // Optional values
+        final pre = args['pre'] as String? ?? '';
+        final nxt = args['nxt'] as String? ?? '';
+
+        return MaterialPageRoute(
+          builder: (context) => MusicPlayer(
+            trackId: trackId,
+            pre: pre,
+            nxt: nxt,
+            isLocal: isLocal,
+            audioQueue: audioQueue,
+          ),
+        );
+      }
+
+      return _errorRoute();
+
+    default:
+      return null;
   }
+}
+
+
 
   static Route<dynamic> _errorRoute() {
     return MaterialPageRoute(

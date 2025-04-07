@@ -5,155 +5,84 @@ import 'package:spotify_ui/providers/music_provider.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:spotify_ui/ui/dashboard/search/search_page.dart';
 
-class SongsPage extends ConsumerStatefulWidget {
+class SongsPage extends ConsumerWidget {
   const SongsPage({super.key});
 
   @override
-  _SongsPageState createState() => _SongsPageState();
-}
-
-class _SongsPageState extends ConsumerState<SongsPage> {
-  late stt.SpeechToText _speech;
-  bool _isListening = false;
-  String _recognizedText = "";
-  bool _speechAvailable = false;
-
-  final List<Map<String, dynamic>> mRecentPlayedList = [
-    {
-      "imgPath":
-          "https://i.scdn.co/image/ab67616d0000b273daf19986ce2c148768f5c362",
-      "name": "Mortals",
-      "artist": "Warriyo",
-      "trackId": "3Fg5uhtWBlW0es8GSqQ6Ff",
-    },
-    {
-      "imgPath":
-          "https://i.scdn.co/image/ab67616d0000b273b0dd6a5cd1dec96c4119c262",
-      "name": "One of the Girls",
-      "artist": "The Weeknd, JENNIE, Lily-Rose Depp",
-      "trackId": "7CyPwkp0oE8Ro9Dd5CUDjW",
-    },
-    {
-      "imgPath":
-          "https://i.scdn.co/image/ab67616d0000b273495ce6da9aeb159e94eaa453",
-      "name": "Closer",
-      "artist": "The Chainsmokers",
-      "trackId": "7BKLCZ1jbUBVqRi2FVlTVw",
-    },
-    {
-      "imgPath":
-          "https://i.scdn.co/image/ab67616d0000b27337677af5b4f23fe9dc8a3c04",
-      "name": "Animals",
-      "artist": "Maroon 5",
-      "trackId": "3h4T9Bg8OVSUYa6danHeH5",
-    },
-  ];
-
-  final List<Map<String, dynamic>> mEditorPicksList = [
-    {
-      "imgPath":
-          "https://i.scdn.co/image/ab67616d0000b273b6b3b7f26f0bc0e0197163a0",
-      "name": "Arabic Kuthu",
-      "artist": "Anirudh Ravichander",
-      "trackId": "6yvxu91deFKt3X1QoV6qMv",
-    },
-    {
-      "imgPath":
-          "https://i.scdn.co/image/ab67616d0000b2736d97b3dc154dfdbe2321fb5c",
-      "name": "Chuttamalle",
-      "artist": "Shilpa Rao, Anirudh Ravichander",
-      "trackId": "1bxzr3JK05fMTcweGAZUHp",
-    },
-    {
-      "imgPath":
-          "https://i.scdn.co/image/ab67616d0000b273c812fd378635732ad755733d",
-      "name": "Badass (From `Leo`)",
-      "artist": "Anirudh Ravichander",
-      "trackId": "3h4T9Bg8OVSUYa6danHeH5",
-    },
-    {
-      "imgPath":
-          "https://i.scdn.co/image/ab67616d0000b273e6065f209e0a01986206bd53",
-      "name": "Sailor Song",
-      "artist": "Gigi Perez",
-      "trackId": "3h4T9Bg8OVSUYa6danHeH5",
-    },
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _speech = stt.SpeechToText();
-    _initSpeech();
-  }
-
-  void _initSpeech() async {
-    try {
-      _speechAvailable = await _speech.initialize(
-        onStatus: (status) => print('Status: $status'),
-        onError: (error) => print('Error: $error'),
-      );
-      setState(() {});
-    } catch (e) {
-      print("Error initializing speech: $e");
-    }
-  }
-
-  Future<void> _toggleRecording() async {
-    try {
-      var status = await Permission.microphone.request();
-      if (status != PermissionStatus.granted) {
-        print("Microphone permission denied");
-        return;
-      }
-
-      if (_isListening) {
-        await _speech.stop();
-        setState(() => _isListening = false);
-
-        if (_recognizedText.isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SearchPage(searchQuery: _recognizedText),
-              fullscreenDialog: false,
-            ),
-          );
-        }
-      } else {
-        if (_speechAvailable) {
-          setState(() {
-            _isListening = true;
-            _recognizedText = "";
-          });
-
-          _speech.listen(
-            onResult: (result) {
-              setState(() {
-                _recognizedText = result.recognizedWords;
-              });
-            },
-            listenFor: const Duration(seconds: 30),
-            pauseFor: const Duration(seconds: 5),
-            localeId: "en_US",
-          );
-        }
-      }
-    } catch (e) {
-      print("Error in speech recognition: $e");
-      setState(() => _isListening = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // ignore: unused_local_variable
     final selectedSong = ref.watch(musicProvider);
     final musicNotifier = ref.read(musicProvider.notifier);
+
+    const List<Map<String, dynamic>> mRecentPlayedList = [
+      {
+        "imgPath":
+            "https://i.scdn.co/image/ab67616d0000b273daf19986ce2c148768f5c362",
+        "name": "Mortals",
+        "artist": "Warriyo",
+        "trackId": "3Fg5uhtWBlW0es8GSqQ6Ff",
+      },
+      {
+        "imgPath":
+            "https://i.scdn.co/image/ab67616d0000b273b0dd6a5cd1dec96c4119c262",
+        "name": "One of the Girls",
+        "artist": "The Weeknd, JENNIE, Lily-Rose Depp",
+        "trackId": "7CyPwkp0oE8Ro9Dd5CUDjW",
+      },
+      {
+        "imgPath":
+            "https://i.scdn.co/image/ab67616d0000b273495ce6da9aeb159e94eaa453",
+        "name": "Closer",
+        "artist": "The Chainsmokers",
+        "trackId": "7BKLCZ1jbUBVqRi2FVlTVw",
+      },
+      {
+        "imgPath":
+            "https://i.scdn.co/image/ab67616d0000b27337677af5b4f23fe9dc8a3c04",
+        "name": "Animals",
+        "artist": "Maroon 5",
+        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
+      },
+    ];
+
+    final List<Map<String, dynamic>> mEditorPicksList = [
+      {
+        "imgPath":
+            "https://i.scdn.co/image/ab67616d0000b273b6b3b7f26f0bc0e0197163a0",
+        "name": "Arabic Kuthu",
+        "artist": "Anirudh Ravichander",
+        "trackId": "6yvxu91deFKt3X1QoV6qMv",
+      },
+      {
+        "imgPath":
+            "https://i.scdn.co/image/ab67616d0000b2736d97b3dc154dfdbe2321fb5c",
+        "name": "Chuttamalle",
+        "artist": "Shilpa Rao, Anirudh Ravichander",
+        "trackId": "1bxzr3JK05fMTcweGAZUHp",
+      },
+      {
+        "imgPath":
+            "https://i.scdn.co/image/ab67616d0000b273c812fd378635732ad755733d",
+        "name": "Badass (From `Leo`)",
+        "artist": "Anirudh Ravichander",
+        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
+      },
+      {
+        "imgPath":
+            "https://i.scdn.co/image/ab67616d0000b273e6065f209e0a01986206bd53",
+        "name": "Sailor Song",
+        "artist": "Gigi Perez",
+        "trackId": "3h4T9Bg8OVSUYa6danHeH5",
+      },
+    ];
+
+    final List<Map<String, String>> localSongs = [
+      {"id": "6HGoVbCUr63SgU3TjxEVj6", "path": "assets/audio/four.mp3"},
+      {"id": "2fWntvE5ES959CohvGfF3f", "path": "assets/audio/two.mp3"},
+      {"id": "7dFqLUWUZ7CKsEAFwf3d4H", "path": "assets/audio/three.mp3"},
+      {"id": "709CXottAkQWL83UqsilQc", "path": "assets/audio/one.mp3"},
+    ];
 
     return SafeArea(
       child: Scaffold(
@@ -165,22 +94,16 @@ class _SongsPageState extends ConsumerState<SongsPage> {
             mSpacer(),
             recentlyPlayedList(
               mRecentPlayedList,
+              context,
               ref,
               musicNotifier,
+              localSongs,
             ), // recently played
             playListUI(context),
             mSpacer(mHeight: 20),
             editorPicksUI(mEditorPicksList, musicNotifier),
           ],
         ),
-        floatingActionButton:
-            _isListening
-                ? FloatingActionButton(
-                  onPressed: _toggleRecording,
-                  backgroundColor: Colors.red,
-                  child: const Icon(Icons.mic, color: Colors.white),
-                )
-                : null,
       ),
     );
   }
@@ -203,14 +126,7 @@ class _SongsPageState extends ConsumerState<SongsPage> {
               Spacer(),
               Icon(Icons.camera_alt, size: 25, color: Colors.white),
               mSpacer(),
-              GestureDetector(
-                onTap: _toggleRecording,
-                child: Icon(
-                  _isListening ? Icons.mic_off : Icons.mic,
-                  size: 25,
-                  color: _isListening ? Colors.red : Colors.white,
-                ),
-              ),
+              Icon(Icons.mic, size: 25, color: Colors.white),
               mSpacer(),
               SvgPicture.asset("assets/svg/Settings.svg", color: Colors.white),
             ],
@@ -222,8 +138,10 @@ class _SongsPageState extends ConsumerState<SongsPage> {
 
   Widget recentlyPlayedList(
     List<Map<String, dynamic>> songs,
+    BuildContext context,
     WidgetRef ref,
     MusicNotifier notifier,
+    List<Map<String, String>> localSongs,
   ) {
     final musicNotifier = ref.read(musicProvider.notifier);
 
@@ -236,11 +154,35 @@ class _SongsPageState extends ConsumerState<SongsPage> {
           return GestureDetector(
             onTap: () {
               print("Clicked song - ${songs[i]['name']}");
+
+              // get only the ids form the map
+              final localSongIds = localSongs.map((song) => song['id']!).toList();
+              
+              musicNotifier.setQueue(plQueue: localSongIds);
+              musicNotifier.setLocalSongs(songs: localSongs);
+
+              // Get prev and next based on current song
+              final pre = musicNotifier.getPlPre(localSongIds[0]);
+              final nxt = musicNotifier.getPlNext(localSongIds[0]);
+
+              print("pre: $pre");
+              print("nxt: $nxt");
+
+              // Set song details
               musicNotifier.setSong(
                 name: songs[i]['name'],
                 artist: songs[i]['artist'],
                 image: songs[i]['imgPath'],
                 trackId: songs[i]['trackId'],
+                pre: pre,
+                nxt: nxt,
+                plQueue: localSongIds,
+              );
+
+              Navigator.pushNamed(
+                context,
+                AppRoutes.songsPage,
+                arguments: {'trackId': localSongIds[0], 'isLocal': true, 'audioQueue': localSongs},
               );
             },
             child: Padding(
@@ -428,11 +370,5 @@ class _SongsPageState extends ConsumerState<SongsPage> {
         ),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    _speech.stop();
-    super.dispose();
   }
 }

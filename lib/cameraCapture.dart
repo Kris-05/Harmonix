@@ -219,7 +219,7 @@ Future<void> sendFrameToServer(Uint8List frameBytes,dynamic mainSendPort,int cou
   // final String url =dotenv.env['API_URL'] ?? 'http://127.0.0.1:8000';
   try {
     final response = await http.post(
-      Uri.parse('http://192.168.137.89:8000/gesture'),
+      Uri.parse('http://10.5.185.205:8000/gesture'),
       headers: {'Content-Type': 'application/octet-stream'},
       body: frameBytes,
     );

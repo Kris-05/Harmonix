@@ -21,8 +21,12 @@
     final String trackId;
     final String pre;
     final String nxt;
+    // New fields to optionally skip Spotify API fetch
+  late List<Map<String, String>>?audioQueue; // path to local audio file (asset or file)
+  late bool? isLocal;
 
-     MusicPlayer({super.key, required this.trackId,required this.pre, required this.nxt});
+     MusicPlayer({super.key, required this.trackId,required this.pre, required this.nxt,this.audioQueue,
+    this.isLocal,});
 
     @override
     ConsumerState<MusicPlayer> createState() => _MusicPlayerState();
@@ -32,6 +36,7 @@
 
       final player = AudioPlayer();
       late Music music; 
+      
       VideoService videoService = VideoService();
       // 7CyPwkp0oE8Ro9Dd5CUDjW - one of the girls
       // 3Fg5uhtWBlW0es8GSqQ6Ff - mortals
@@ -43,6 +48,7 @@
       void initState() {
         // print("hello");
         music = Music(trackId: widget.trackId);
+        print(widget.isLocal);
         fetchAndPlayMusic();
         super.initState();
         
@@ -59,6 +65,25 @@
         else{
           print("Gesture Is in Off State");
         }
+
+
+        // keestu fix!
+        if (widget.isLocal == true) {
+      print("Playing from local...");
+      if (widget.audioQueue != null && widget.trackId.isNotEmpty) {
+        final localTrack = widget.audioQueue!.firstWhere(
+          (track) => track['id'] == widget.trackId,
+          orElse: () => {},
+        );
+        final path = localTrack['path'];
+
+        if (path != null) {
+          playLocalAudio(path);
+        } else {
+          print("Local path not found for trackId: ${widget.trackId}");
+        }
+      }
+    }
       }
 
       @override
@@ -80,6 +105,59 @@
         _listenToGestureStream(videoService, container);
       }
 
+      void handleNext(MusicNotifier musicNotifier)async{
+         String temp = musicNotifier.getPlNext(widget.trackId);
+                              print("from nxt button: $temp");
+                              await player.pause();
+
+                              // Update global state when clicking the MusicSlab
+                              musicNotifier.setSong(
+                                name: music.songName,
+                                artist: music.artistName,
+                                image: music.songImage,
+                                nxt: widget.nxt,
+                              );
+                              
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.songsPage,
+                                arguments: {
+                                  'trackId': musicNotifier.getPlNext(
+                                    widget.trackId,
+                                  ),
+                                  'pre': musicNotifier.getPlPre(widget.nxt),
+                                  'nxt': musicNotifier.getPlNext(widget.nxt),
+                                  'isLocal': widget.isLocal,
+                                  'audioQueue': widget.audioQueue,
+                                },
+                              );
+      }
+
+      void handlePre(MusicNotifier musicNotifier)async {
+            String temp = musicNotifier.getPlPre(widget.trackId);
+                              print("from prev button: $temp");
+                              await player.pause();
+
+                              // Update global state when clicking the MusicSlab
+                              musicNotifier.setSong(
+                                name: music.songName,
+                                artist: music.artistName,
+                                image: music.songImage,
+                                trackId: temp,
+                              );
+
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.songsPage,
+                                arguments: {
+                                  'trackId': temp,
+                                  'pre': musicNotifier.getPlPre(temp),
+                                  'nxt': musicNotifier.getPlNext(temp),
+                                  'isLocal': widget.isLocal,
+                                  'audioQueue': widget.audioQueue,
+                                },
+                              );
+      }
       void _listenToGestureStream(VideoService videoService, ProviderContainer container) {
               final musicNotifier = ref.read(musicProvider.notifier);
               
@@ -94,25 +172,14 @@
                       break;
                     case 'next':
                     case 'next2':
-                        // musicNotifier.setSong(name:"next",artist:  "meeee",image:  "https://i.scdn.co/image/ab67616d0000b273b0dd6a5cd1dec96c4119c262",nxt:  widget.nxt);
-                      Navigator.pushNamed(
-                                    context,
-                                    AppRoutes.songsPage,
-                                    arguments: {'trackId': musicNotifier.getPlNext(widget.trackId),'pre':musicNotifier.getPlPre(widget.nxt),'nxt':musicNotifier.getPlNext(widget.nxt)},
-                      );
-
+                       handleNext(musicNotifier);
                       break;
                     case 'previous':
                     case 'previous2':
                       // music.previous();
                       print('pre');
 
-                      // musicNotifier.setSong(name:"Pree",artist:  "meeee", image: "https://i.scdn.co/image/ab67616d0000b27337677af5b4f23fe9dc8a3c04",trackId:  widget.pre);
-                                  Navigator.pushNamed(
-                                    context,
-                                    AppRoutes.songsPage,
-                                    arguments: {'trackId': widget.pre,'pre':musicNotifier.getPlPre(widget.pre),'nxt':musicNotifier.getPlNext(widget.pre)},
-                      );
+                     handlePre(musicNotifier);
                       break;
                     default:
                       print("Unknown gesture: $gesture");
@@ -120,6 +187,26 @@
                 });
               }
 
+
+       Future<void> playLocalAudio(String path) async {
+    try {
+      print("Playing local audio: $path");
+
+      if (path.startsWith("assets/")) {
+        await player.play(AssetSource(path.replaceFirst("assets/", "")));
+      } else {
+        await player.play(DeviceFileSource(path));
+      }
+
+      player.onDurationChanged.listen((duration) {
+        setState(() {
+          music.duration = duration;
+        });
+      });
+    } catch (e) {
+      print("Local audio play error: $e");
+    }
+  }
 
       Future<void> fetchAndPlayMusic() async {
         try {
@@ -171,6 +258,12 @@
           setState(() {
             music.duration = video.duration;
           });
+
+          if (widget.isLocal == true) {
+        print("Skipping YouTube playback since it's local.");
+      }
+
+      if (widget.isLocal == true) return;
 
           print("Playing song...");
           await player.play(UrlSource(audioUrl.toString()));
@@ -332,16 +425,31 @@
                               )
                             ),
                             IconButton(
-                                onPressed: () async{
-                                  print("${widget.pre}");
-                                  // Update global state when clicking the MusicSlab
-                                  musicNotifier.setSong(name:"Pree",artist:  "meeee", image: "https://i.scdn.co/image/ab67616d0000b27337677af5b4f23fe9dc8a3c04",trackId:  widget.pre);
-                                  Navigator.pushNamed(
-                                    context,
-                                    AppRoutes.songsPage,
-                                    arguments: {'trackId': widget.pre,'pre':musicNotifier.getPlPre(widget.pre),'nxt':musicNotifier.getPlNext(widget.pre)},
-                                  );
+                                onPressed: () async {
+                              String temp = musicNotifier.getPlPre(widget.trackId);
+                              print("from prev button: $temp");
+                              await player.pause();
+
+                              // Update global state when clicking the MusicSlab
+                              musicNotifier.setSong(
+                                name: music.songName,
+                                artist: music.artistName,
+                                image: music.songImage,
+                                trackId: temp,
+                              );
+
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.songsPage,
+                                arguments: {
+                                  'trackId': temp,
+                                  'pre': musicNotifier.getPlPre(temp),
+                                  'nxt': musicNotifier.getPlNext(temp),
+                                  'isLocal': widget.isLocal,
+                                  'audioQueue': widget.audioQueue,
                                 },
+                              );
+                            },
                                 icon: const Icon(
                                   Icons.skip_previous,
                                   color: Colors.white, size: 36
@@ -362,19 +470,33 @@
                                 )
                             ),
                             IconButton(
-                              onPressed: () {
-                                print("next!!! ${widget.nxt}");
-                               
-                                  print("${widget.pre}");
-                                  // Update global state when clicking the MusicSlab
-                                  musicNotifier.setSong(name:"next",artist:  "meeee",image:  "https://i.scdn.co/image/ab67616d0000b273b0dd6a5cd1dec96c4119c262",nxt:  widget.nxt);
-                                  Navigator.pushNamed(
-                                    context,
-                                    AppRoutes.songsPage,
-                                    arguments: {'trackId': musicNotifier.getPlNext(widget.trackId),'pre':musicNotifier.getPlPre(widget.nxt),'nxt':musicNotifier.getPlNext(widget.nxt)},
-                                  );
-              
-                              },
+                              onPressed: () async {
+                              String temp = musicNotifier.getPlNext(widget.trackId);
+                              print("from nxt button: $temp");
+                              await player.pause();
+
+                              // Update global state when clicking the MusicSlab
+                              musicNotifier.setSong(
+                                name: music.songName,
+                                artist: music.artistName,
+                                image: music.songImage,
+                                nxt: widget.nxt,
+                              );
+                              
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.songsPage,
+                                arguments: {
+                                  'trackId': musicNotifier.getPlNext(
+                                    widget.trackId,
+                                  ),
+                                  'pre': musicNotifier.getPlPre(widget.nxt),
+                                  'nxt': musicNotifier.getPlNext(widget.nxt),
+                                  'isLocal': widget.isLocal,
+                                  'audioQueue': widget.audioQueue,
+                                },
+                              );
+                            },
                               icon: Icon(
                                 Icons.skip_next,   
                                 color: Colors.white, size: 36,
