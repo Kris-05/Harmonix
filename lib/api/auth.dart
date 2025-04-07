@@ -5,7 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Auth{
    
-  static Future<Map<String,dynamic> > createAccountApi({required String name,required String password,required String gender,required String email,required List<String> languages,List<String>? arts}) async{
+  static Future<Map<String,dynamic> > createAccountApi({required String name,required String password,required String gender,required String email,required List<String> languages,required List<dynamic> arts}) async{
     print(" $name ,$password,$email,$gender,$arts");
 
     final String url =dotenv.env['API_URL'] ?? 'http://127.0.0.1:8000';
@@ -61,7 +61,7 @@ class Auth{
           
             print(res.statusCode);
             if (res.statusCode == 200) {
-              print("Account Logged In successfully: ${res.body}");
+              print("Account Logged In successfully");
               return jsonDecode(res.body);
             } else {
               print("Error: ${res.body}");

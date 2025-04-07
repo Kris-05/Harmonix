@@ -1,4 +1,4 @@
 class CustomStrings {
-  static const String clientId = "8b248801442a462299852cef6b2f1d83";
-  static const String clientSecret = "169a432d0aa8498e896cf3f80c76b184";
+  static const String clientId = "0ca75692e8f2445d9f983c10e451c244";
+  static const String clientSecret = "23184296d0e845a2b1360b0b97c0f15e";
 }

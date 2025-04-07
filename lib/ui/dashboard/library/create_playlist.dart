@@ -12,7 +12,7 @@ class CreatePlaylist extends StatefulWidget {
 class _CreatePlaylistState extends State<CreatePlaylist> {
   TextEditingController _playlistNameController = TextEditingController();
   FocusNode _focusNode = FocusNode();
-  String? _errorText; 
+  String? _errorText;
 
   @override
   void initState() {
@@ -94,7 +94,9 @@ class _CreatePlaylistState extends State<CreatePlaylist> {
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.white),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 25, vertical: 12),
+                          horizontal: 25,
+                          vertical: 12,
+                        ),
                       ),
                       child: const Text(
                         "Cancel",
@@ -132,7 +134,9 @@ class _CreatePlaylistState extends State<CreatePlaylist> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xff1DB954),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 25, vertical: 12),
+                          horizontal: 25,
+                          vertical: 12,
+                        ),
                       ),
                       child: const Text(
                         "Create",

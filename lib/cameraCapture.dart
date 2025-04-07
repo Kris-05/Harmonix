@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as imglib;
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -188,17 +189,17 @@ String finalizeGesture(List<String> gesturePool) {
 
   print("\n\n\n\n\n Finalize Function \n\n\n\n\n");
   final filtered = gesturePool.where((g) => g != "unknown").toList();
-
-  if (filtered.isEmpty) return "unknown";
+  final fil2=filtered.where((g)=>g!='no_hand').toList();
+  if (fil2.isEmpty) return "unknown";
 
   final Map<String, int> freqMap = {};
 
-  for (var g in filtered) {
+  for (var g in fil2) {
     freqMap[g] = (freqMap[g] ?? 0) + 1;
   }
 
  
-  String mostFrequent = filtered.first;
+  String mostFrequent = fil2.first;
   int maxCount = 0;
 
   freqMap.forEach((gesture, count) {
@@ -215,9 +216,10 @@ String finalizeGesture(List<String> gesturePool) {
 
 
 Future<void> sendFrameToServer(Uint8List frameBytes,dynamic mainSendPort,int count) async {
+  // final String url =dotenv.env['API_URL'] ?? 'http://127.0.0.1:8000';
   try {
     final response = await http.post(
-      Uri.parse('http://192.168.137.5:8000/gesture'),
+      Uri.parse('http://192.168.137.89:8000/gesture'),
       headers: {'Content-Type': 'application/octet-stream'},
       body: frameBytes,
     );

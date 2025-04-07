@@ -22,7 +22,8 @@ class CircularImage extends StatelessWidget {
         ),
         shape: BoxShape.circle,
         image: DecorationImage(
-          image: AssetImage(imgPath),
+          image: NetworkImage(imgPath),
+          fit: BoxFit.cover
         ),
       ),
       child: isSelected ? Center(

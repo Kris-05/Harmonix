@@ -41,9 +41,9 @@ class HomePage extends ConsumerWidget {
               child: Align(
                 alignment: Alignment.bottomCenter,
                 child: MusicSlab(
-                  songName: selectedSong.songName,
-                  artistName: selectedSong.artistName,
-                  imgPath: selectedSong.imgPath,
+                  // songName: selectedSong.songName, 
+                  // artistName: selectedSong.artistName,
+                  // imgPath: selectedSong.imgPath,
                   trackId: selectedSong.trackId,
                   player: player,
                   pre: '28pMkd9JEFnupyk4SnCTPn',

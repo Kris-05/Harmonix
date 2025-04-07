@@ -37,7 +37,7 @@ class _PlaylistSpecificPageState extends ConsumerState<PlaylistSpecificPage> {
   ScrollController _scrollController = ScrollController();
   bool showTitleInAppBar = false;
   bool isAddingSongs = false;
-  bool isLiked=false;
+  bool isLiked = false;
 
   // Fetch playlist using Future to reload on every build
   late Future<List<dynamic>> _playlistFuture;
@@ -109,13 +109,15 @@ void _fetchPlaylist() {
 
 
 
-  void _fetchLike()async{
-    isLiked=await Playlistapi.isPlaylistLiked(id: widget.id.toString(),
-        email: "sakthi@gmail.com",);
+  void _fetchLike() async {
+    isLiked = await Playlistapi.isPlaylistLiked(
+      id: widget.id.toString(),
+      email: "sakthi@gmail.com",
+    );
     print("\n\n\nisLIked::$isLiked\n\n\n\n");
 
     setState(() {
-    isLiked = isLiked;
+      isLiked = isLiked;
     });
   }
 
@@ -126,13 +128,15 @@ void _fetchPlaylist() {
     });
   }
 
-  void changeLike()async {
-    await Playlistapi.ChangeLike(id: widget.id.toString(),
-        email: "sakthi@gmail.com",);
+  void changeLike() async {
+    await Playlistapi.ChangeLike(
+      id: widget.id.toString(),
+      email: "sakthi@gmail.com",
+    );
     print("Like Changed");
 
     setState(() {
-      isLiked=!isLiked;
+      isLiked = !isLiked;
     });
   }
 
@@ -172,9 +176,9 @@ void _fetchPlaylist() {
               left: 0,
               right: 0,
               child: MusicSlab(
-                songName: selectedSong.songName,
-                artistName: selectedSong.artistName,
-                imgPath: selectedSong.imgPath,
+                // songName: selectedSong.songName,
+                // artistName: selectedSong.artistName,
+                // imgPath: selectedSong.imgPath,
                 trackId: selectedSong.trackId,
                 player: _player,
                 pre:selectedSong.pre,
@@ -242,7 +246,6 @@ void _fetchPlaylist() {
             ),
           ),
 
-          
           isAddingSongs
               ? Column(
                 children: [
@@ -264,9 +267,8 @@ void _fetchPlaylist() {
                   ),
                   Expanded(
                     child: SearchPageLib(
-                      onSearched:
-                          _onSongsAdded,
-                      id: widget.id// Callback to refresh after adding
+                      onSearched: _onSongsAdded,
+                      id: widget.id, // Callback to refresh after adding
                     ),
                   ),
                 ],
@@ -374,21 +376,20 @@ void _fetchPlaylist() {
                                 widget.playListName,
                                 "email",
                                 widget.id,
-                                (){
+                                () {
                                   setState(() {
-                                    isAddingSongs=true;
+                                    isAddingSongs = true;
                                   });
                                 },
                                 changeLike,
                                 widget.onUpdate,
-                              
                               ),
                               const Spacer(),
                               const CircleAvatar(),
                             ],
                           ),
                           mSpacer(),
-                 FutureBuilder<List<dynamic>>(
+                          FutureBuilder<List<dynamic>>(
                             future: _playlistFuture,
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
@@ -434,8 +435,8 @@ void _fetchPlaylist() {
 
                             },
                           ),
-                        
-                        mSpacer(mHeight: 30),
+
+                          mSpacer(mHeight: 30),
                         ],
                       ),
                     ),
@@ -548,7 +549,16 @@ Widget ownerRow(String owner) {
 }
 
 // Playlist Actions (Add/Delete)
-Widget iconWidget(context,bool isLik,plname, email, id,func,changeLike,VoidCallback onUp) {
+Widget iconWidget(
+  context,
+  bool isLik,
+  plname,
+  email,
+  id,
+  func,
+  changeLike,
+  VoidCallback onUp,
+) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -565,7 +575,7 @@ Widget iconWidget(context,bool isLik,plname, email, id,func,changeLike,VoidCallb
             },
             child: Icon(
               Icons.favorite,
-              color: isLik?Color(0xff1ED760):Color(0xffB3B3B3),
+              color: isLik ? Color(0xff1ED760) : Color(0xffB3B3B3),
               size: 25,
             ),
           ),
@@ -578,7 +588,7 @@ Widget iconWidget(context,bool isLik,plname, email, id,func,changeLike,VoidCallb
           ),
           mSpacer(mWidth: 40),
           InkWell(
-            onTap: ()async {
+            onTap: () async {
               print("Del Clicked!!");
               try {
                 await Playlistapi.deletePlaylist(playListName: plname, id: id);

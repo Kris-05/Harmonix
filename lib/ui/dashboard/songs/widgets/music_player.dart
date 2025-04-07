@@ -94,6 +94,7 @@
                       break;
                     case 'next':
                     case 'next2':
+                        // musicNotifier.setSong(name:"next",artist:  "meeee",image:  "https://i.scdn.co/image/ab67616d0000b273b0dd6a5cd1dec96c4119c262",nxt:  widget.nxt);
                       Navigator.pushNamed(
                                     context,
                                     AppRoutes.songsPage,
@@ -106,7 +107,7 @@
                       // music.previous();
                       print('pre');
 
-                      musicNotifier.setSong(name:"Pree",artist:  "meeee", image: "https://i.scdn.co/image/ab67616d0000b27337677af5b4f23fe9dc8a3c04",trackId:  widget.pre);
+                      // musicNotifier.setSong(name:"Pree",artist:  "meeee", image: "https://i.scdn.co/image/ab67616d0000b27337677af5b4f23fe9dc8a3c04",trackId:  widget.pre);
                                   Navigator.pushNamed(
                                     context,
                                     AppRoutes.songsPage,

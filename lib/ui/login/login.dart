@@ -1,46 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotify_ui/api/auth.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
+
+import 'package:spotify_ui/providers/user_provider.dart';
 import 'package:spotify_ui/ui/custom_widgets/custom_button.dart';
 
-class Login extends StatefulWidget {
+class Login extends ConsumerStatefulWidget {
   const Login({super.key});
 
   @override
-  State<Login> createState() => _LoginState();
+  ConsumerState<Login> createState() => _LoginState();
 }
 
-class _LoginState extends State<Login> {
-
-
-  // Controllers for text fields
+class _LoginState extends ConsumerState<Login> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passController = TextEditingController();
 
-  // Error handling for email and password
   String? emailError;
   String? passwordError;
 
-  // this is For Login Page..
-  // Consisit of Email Page and PassWord Page..
-
-  // This Is for the Index Mapping...
-  int selectedIndex=0;
+  int selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.blackColor,
       appBar: AppBar(
-        title: const Text("Login",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
+        title: const Text(
+          "Login",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: AppColors.blackColor,
         centerTitle: true,
         leading: InkWell(
           onTap: () {
-            // Go to the previous page if possible
             if (selectedIndex > 0) {
               setState(() {
                 selectedIndex--;
@@ -56,82 +53,76 @@ class _LoginState extends State<Login> {
               color: Colors.white,
             ),
           ),
-        )
+        ),
       ),
-      body: Padding(padding:  const EdgeInsets.all(14),  //Body Of the login Page...
-      child: Column(
-        children: [
-          // Get the current page dynamically
+      body: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          children: [
             getPage(),
             mSpacer(mHeight: 25),
-
-            // Next button to navigate through pages
             CustomButton(
-              onTap: () async {
-                // Validate email on the first page
-                if (selectedIndex == 0) {
-                  if (!_isValidEmail(emailController.text)) {
-                    setState(() {
-                      emailError = "Please enter a valid email";
-                    });
-                    return;
-                  } 
-                  }else {
-
-                    if(passController.text.length<8){
-                      setState(() {
-                        passwordError="It Must Be Atleast 8 Chars";
-                        return;
-                      });
-                    }
-
-
-                    print("Pressed Submit ,, Gonna Call Api");
-                    try{
-                    final res=await Auth.loginApi(email:emailController.text, password:passController.text );
-                    print("Login Successs");
-                    Navigator.pushNamed(context, AppRoutes.homePage);
-                  }
-                  catch(err){
-                    setState(() {
-                      passwordError="Error in Logging In";
-                    });
-                  }
-
-
-                 }
-                
-
-                // Validate password on the second page
-                if (selectedIndex == 1) {
-                  if (!_isValidPassword(passController.text)) {
-                    setState(() {
-                      passwordError = "UR Password is at least 8 characters";
-                    });
-                    return;
-                  } 
-                }
-              
-
-                // Move to the next page if validation passes
-                if (selectedIndex < 2) {
-                  setState(() {
-                    selectedIndex++;
-                  });
-                } 
-              },
-              text: "Next",
+              onTap: handleNext,
+              text: selectedIndex == 1 ? "Login" : "Next",
               bgColor: AppColors.whiteColor,
               mWidth: 100,
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  // Returns the correct page based on selectedIndex
-  Widget getPage(){
+  void handleNext() async {
+    setState(() {
+      emailError = null;
+      passwordError = null;
+    });
+
+    if (selectedIndex == 0) {
+      if (!_isValidEmail(emailController.text)) {
+        setState(() {
+          emailError = "Please enter a valid email";
+        });
+        return;
+      } else {
+        setState(() {
+          selectedIndex++;
+        });
+      }
+    } else if (selectedIndex == 1) {
+      if (!_isValidPassword(passController.text)) {
+        setState(() {
+          passwordError = "Password must be at least 8 characters";
+        });
+        return;
+      }
+
+      try {
+        final res = await Auth.loginApi(
+          email: emailController.text,
+          password: passController.text,
+        );
+        final user=res['user'];
+        ref.read(loginProvider.notifier).login(user['name'], user['email']);
+        print(user);
+       if (mounted) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.homePage,
+            (route) => false,
+          );
+        }
+        } catch (err) {
+          print(err);
+        setState(() {
+          passwordError = "Login failed. Please try again.";
+        });
+      }
+    }
+  }
+
+  Widget getPage() {
     if (selectedIndex == 0) {
       return wholeUI(
         title: "Enter your email",
@@ -140,18 +131,17 @@ class _LoginState extends State<Login> {
         isPass: false,
         err: emailError,
       );
-    } else  {
+    } else {
       return wholeUI(
         title: "Enter password",
-        desc: "Use Your PassWord",
+        desc: "Use your password",
         controller: passController,
         isPass: true,
         err: passwordError,
       );
-    } 
+    }
   }
 
-  // UI for Email and Password fields with error handling
   Widget wholeUI({
     required String title,
     required String desc,
@@ -162,7 +152,6 @@ class _LoginState extends State<Login> {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title
           Text(
             title,
             style: const TextStyle(
@@ -172,20 +161,14 @@ class _LoginState extends State<Login> {
             ),
           ),
           mSpacer(mHeight: 4, mWidth: 8),
-
-          // TextField with border changes based on error
           TextField(
             controller: controller,
             obscureText: isPass,
             style: const TextStyle(color: Colors.white),
             cursorColor: Colors.white,
-            decoration: getAccountField(
-              hasError: err != null, // Red border if error
-            ),
+            decoration: getAccountField(hasError: err != null),
           ),
           mSpacer(mHeight: 4, mWidth: 8),
-
-          // Error message display if any
           if (err != null)
             Padding(
               padding: const EdgeInsets.only(top: 4),
@@ -194,11 +177,7 @@ class _LoginState extends State<Login> {
                 style: const TextStyle(color: Colors.red, fontSize: 12),
               ),
             ),
-
-          mSpacer(mHeight: 4, mWidth: 8),
-    
-    
-          
+          mSpacer(mHeight: 8, mWidth: 8),
           Text(
             desc,
             style: const TextStyle(
@@ -209,18 +188,14 @@ class _LoginState extends State<Login> {
           ),
         ],
       );
-
 }
 
-
-// Validate email format using regex
+// Validator functions
 bool _isValidEmail(String email) {
   final regex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$');
   return regex.hasMatch(email);
 }
 
-// Validate password (at least 8 characters)
 bool _isValidPassword(String password) {
   return password.length >= 8;
 }
-
