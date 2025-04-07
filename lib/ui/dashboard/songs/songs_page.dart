@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/providers/music_provider.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
@@ -173,7 +174,7 @@ class SongsPage extends ConsumerWidget {
     );
   }
 
-  Widget playListUI(){
+  Widget playListUI(context){
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Column(
@@ -191,9 +192,16 @@ class SongsPage extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(10), // Rounded corners
                   border: Border.all(color: Colors.white, width: 2), // White border
                 ),
-                child: const Center(
-                  child: Icon(Icons.add, color: Colors.white, size: 40), // Centered plus icon
+                child: InkWell(
+                  onTap: (){
+                    Navigator.pushNamed(context, AppRoutes.createPlaylist,arguments: {
+                          'onPlaylistCreated': (){}
+                        });
+                  },
+                  child: Center(
+                    child: Icon(Icons.add, color: Colors.white, size: 40), // Centered plus icon
                 ),
+                )
               ),
             ),
         ],

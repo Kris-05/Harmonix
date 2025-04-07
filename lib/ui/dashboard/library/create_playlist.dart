@@ -85,7 +85,10 @@ class _CreatePlaylistState extends State<CreatePlaylist> {
                   children: [
                     // Cancel Button
                     OutlinedButton(
-                      onPressed: () {
+                      onPressed: ()async {
+                        
+                        FocusScope.of(context).unfocus();
+                        await Future.delayed(Duration(milliseconds: 100));
                         Navigator.pop(context);
                       },
                       style: OutlinedButton.styleFrom(
@@ -103,29 +106,30 @@ class _CreatePlaylistState extends State<CreatePlaylist> {
 
                     // Create Button
                     ElevatedButton(
-                      onPressed: () async {
-                        String playlistName =
-                            _playlistNameController.text.trim();
-                        if (playlistName.isEmpty) {
-                          setState(() {
-                            _errorText = "Playlist name cannot be empty";
-                          });
-                        } else {
-                          setState(() {
-                            _errorText = null;
-                          });
-                          try {
-                            await Playlistapi.createPlaylistApi(
-                              playListName: playlistName,
-                              email: "sakthi@gmail.com",
-                            );
-                            print("playlist Created With Name!!!");
-                            widget.fetchPl();
-                            Navigator.pop(context);
-                          } catch (err) {
-                            print("Err:${err.toString()}");
-                          }
-                        }
+                      onPressed: ()async{
+                          String playlistName = _playlistNameController.text.trim();
+                                if (playlistName.isEmpty) {
+                                  setState(() {
+                                    _errorText = "Playlist name cannot be empty"; 
+                                  });
+                                } else {
+                                  setState(() {
+                                    _errorText = null; 
+                                  });
+                                  try{
+                                    
+                                    await Playlistapi.createPlaylistApi(playListName:playlistName,email:"sakthi@gmail.com");
+                                    print("playlist Created With Name!!!");
+                                    widget.fetchPl();
+                                    FocusScope.of(context).unfocus();
+                                    await Future.delayed(Duration(milliseconds: 100));
+                                    Navigator.pop(context);
+
+                                  }
+                                  catch(err){
+                                    print("Err:${err.toString()}");
+                                  }
+                                }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xff1DB954),

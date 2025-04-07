@@ -59,9 +59,11 @@ class AppRoutes {
         // Expect a Map<String, dynamic> as arguments
         final args = settings.arguments as Map<String, dynamic>?; 
         if (args != null && args.containsKey('trackId')) {
-          final trackId = args['trackId'] as String; // Extract trackId
+          final trackId = args['trackId'] as String;
+          final pre=args['pre'] as String;
+          final nxt=args['nxt'] as String;
           return MaterialPageRoute(
-            builder: (context) => MusicPlayer(trackId: trackId),
+            builder: (context) => MusicPlayer(trackId: trackId,pre: pre,nxt: nxt),
           );
         }
         return _errorRoute(); // Return error if args are not valid

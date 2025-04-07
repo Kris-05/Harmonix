@@ -5,10 +5,12 @@
   import 'package:flutter_riverpod/flutter_riverpod.dart';
   import 'package:palette_generator/palette_generator.dart';
   import 'package:spotify/spotify.dart';
+import 'package:spotify_ui/domain/app_routes.dart';
   import 'package:spotify_ui/domain/custom_strings.dart';
   import 'package:spotify_ui/domain/ui_helper.dart';
   // import 'package:spotify_ui/providers/music_provider.dart';
   import 'package:spotify_ui/domain/app_colors.dart';
+import 'package:spotify_ui/providers/music_provider.dart';
   import 'package:spotify_ui/ui/dashboard/songs/model/Music.dart';
   import 'package:spotify_ui/ui/dashboard/songs/widgets/artwork_image.dart';
   import 'package:spotify_ui/ui/dashboard/songs/widgets/lyrics_page.dart';
@@ -16,8 +18,10 @@
 
   class MusicPlayer extends ConsumerStatefulWidget {
     final String trackId;
+    final String pre;
+    final String nxt;
 
-    const MusicPlayer({super.key, required this.trackId});
+     MusicPlayer({super.key, required this.trackId,required this.pre, required this.nxt});
 
     @override
     ConsumerState<MusicPlayer> createState() => _MusicPlayerState();
@@ -109,6 +113,9 @@
 
     @override
     Widget build(BuildContext context) {
+    final musicState = ref.watch(musicProvider);
+    final musicNotifier = ref.read(musicProvider.notifier);
+
       return Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -246,7 +253,16 @@
                               )
                             ),
                             IconButton(
-                                onPressed: () {},
+                                onPressed: () async{
+                                  print("${widget.pre}");
+                                  // Update global state when clicking the MusicSlab
+                                  musicNotifier.setSong(name:"Pree",artist:  "meeee", image: "https://i.scdn.co/image/ab67616d0000b27337677af5b4f23fe9dc8a3c04",trackId:  widget.pre);
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.songsPage,
+                                    arguments: {'trackId': widget.pre,'pre':musicNotifier.getPlPre(widget.pre),'nxt':musicNotifier.getPlNext(widget.pre)},
+                                  );
+                                },
                                 icon: const Icon(
                                   Icons.skip_previous,
                                   color: Colors.white, size: 36
@@ -267,7 +283,19 @@
                                 )
                             ),
                             IconButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                print("next!!! ${widget.nxt}");
+                               
+                                  print("${widget.pre}");
+                                  // Update global state when clicking the MusicSlab
+                                  musicNotifier.setSong(name:"next",artist:  "meeee",image:  "https://i.scdn.co/image/ab67616d0000b273b0dd6a5cd1dec96c4119c262",nxt:  widget.nxt);
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.songsPage,
+                                    arguments: {'trackId': musicNotifier.getPlNext(widget.trackId),'pre':musicNotifier.getPlPre(widget.nxt),'nxt':musicNotifier.getPlNext(widget.nxt)},
+                                  );
+              
+                              },
                               icon: Icon(
                                 Icons.skip_next,   
                                 color: Colors.white, size: 36,

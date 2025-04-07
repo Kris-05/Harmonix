@@ -21,11 +21,12 @@ final trackInfoProvider = StateProvider<Map<String, String>>((ref) => {
 class MusicSlab extends ConsumerStatefulWidget {
   final String trackId;
   final AudioPlayer player;
+  String pre,nxt;
 
-  const MusicSlab({
+  MusicSlab({
     super.key,
     required this.trackId,
-    required this.player,
+    required this.player, required this.pre, required this.nxt,
   });
 
   @override
@@ -116,7 +117,7 @@ class _MusicSlabState extends ConsumerState<MusicSlab> {
         Navigator.pushNamed(
           context,
           AppRoutes.songsPage,
-          arguments: {'trackId': _currentTrackId}, // Pass trackId as an argument
+          arguments: {'trackId': trackId,'pre':pre,'nxt':nxt}, // Pass trackId as an argument
         );
       },
       child: Container(

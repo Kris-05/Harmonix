@@ -171,6 +171,8 @@ static Future<void> ChangeLike({
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
+        print(data);
+        
       } else {
         throw Exception("Error occurred: ${res.body}");
       }
