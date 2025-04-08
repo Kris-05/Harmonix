@@ -10,6 +10,7 @@ class MusicState {
   late String pre;
   late String nxt;
   List<dynamic>?queue=[];
+  List<Map<String, String>>? localSongs;
 
   MusicState({
     this.songName = '',
@@ -21,6 +22,7 @@ class MusicState {
     this.nxt='28pMkd9JEFnupyk4SnCTPn',
     this.pre='3h4T9Bg8OVSUYa6danHeH5',
      this.queue,
+     this.localSongs, 
 
   });
 
@@ -34,6 +36,7 @@ class MusicState {
     String ?pre,
     String ?nxt,
     List<dynamic>?queue,
+    List<Map<String, String>>? localSongs,
 
   }) {
     return MusicState(
@@ -46,7 +49,7 @@ class MusicState {
       pre:pre?? this.pre,
       nxt:nxt??this.nxt,
       queue: queue??this.queue,
-    
+      localSongs: localSongs ?? this.localSongs,
     );
   }
 }
@@ -74,6 +77,11 @@ class MusicNotifier extends StateNotifier<MusicState> {
     );
   }
 
+  void setLocalSongs({List<Map<String, String>>? songs}) {
+    state = state.copyWith(
+      localSongs: songs
+    );
+  }
 
   String getPlPre(String trackId) {
     final queue = state.queue ?? [];

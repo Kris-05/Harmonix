@@ -59,6 +59,11 @@ class _MusicSlabState extends ConsumerState<MusicSlab> {
 
   Future<void> fetchTrackInfo() async {
     try {
+      if (_currentTrackId.isEmpty) {
+        print("Track ID is empty. Skipping fetch.");
+        return;
+      }
+
       final credentials = SpotifyApiCredentials(CustomStrings.clientId, CustomStrings.clientSecret);
       final spotify = SpotifyApi(credentials);
 
@@ -81,6 +86,11 @@ class _MusicSlabState extends ConsumerState<MusicSlab> {
   }
 
   Future<void> getImagePalette() async {
+    if (_currentTrackId.isEmpty) {
+      print("Track ID is empty. Skipping fetch.");
+      return;
+    }
+
     final imageUrl = ref.read(trackInfoProvider)["imgPath"] ?? "";
     if (imageUrl.isNotEmpty) {
       final PaletteGenerator paletteGenerator =
@@ -103,7 +113,7 @@ class _MusicSlabState extends ConsumerState<MusicSlab> {
 
     // Call getImagePalette when widget builds
     WidgetsBinding.instance.addPostFrameCallback((_) => getImagePalette());
-    WidgetsBinding.instance.addPostFrameCallback((_) => fetchTrackInfo());
+    // WidgetsBinding.instance.addPostFrameCallback((_) => fetchTrackInfo());
 
     return GestureDetector(
       onTap: () {
