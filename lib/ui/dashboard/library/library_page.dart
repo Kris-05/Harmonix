@@ -95,7 +95,7 @@ class _LibraryPageState extends State<LibraryPage> {
                               final playlist = snapshot.data![index];
                               return PlaylistComp(
                                 title: playlist['name'],
-                                Owner: "SakthiPriyan",
+                                Owner: "Peter Parker",
                                 id: playlist['id'],
                                 onUpdate: fetchPlayList,
                               );

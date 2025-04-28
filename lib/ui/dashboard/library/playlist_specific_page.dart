@@ -365,7 +365,7 @@ void _fetchPlaylist() {
                         children: [
                           mSpacer(mHeight: 6),
 
-                          ownerRow("SakthiPriyan"),
+                          ownerRow("Peter Parker"),
                           mSpacer(mHeight: 7),
 
                           Row(
