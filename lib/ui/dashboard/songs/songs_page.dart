@@ -108,7 +108,7 @@ class SongsPage extends ConsumerWidget {
     );
   }
 
-  Widget recentlyPlayedUI() {
+
   Widget recentlyPlayedUI() {
     return Column(
       children: [
@@ -210,12 +210,7 @@ class SongsPage extends ConsumerWidget {
                                           (loadingProgress.expectedTotalBytes ??
                                               1)
                                       : null,
-                              value:
-                                  loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          (loadingProgress.expectedTotalBytes ??
-                                              1)
-                                      : null,
+                            
                             ),
                           ),
                         );
@@ -379,4 +374,4 @@ class SongsPage extends ConsumerWidget {
     );
   }
 }
-}
+
