@@ -60,16 +60,16 @@ class AppRoutes {
 
       if (args != null &&
           args['trackId'] is String &&
-          args['isLocal'] is bool &&
-          args['audioQueue'] is List) {
+          args['isLocal'] is bool){
+          // && args['audioQueue'] is List) {
         
-        final trackId = args['trackId'] as String;
-        final isLocal = args['isLocal'] as bool;
-        final audioQueue = List<Map<String, String>>.from(args['audioQueue']);
+        final trackId = args?['trackId'] as String;
+        final isLocal = args?['isLocal'] as bool;
+        final audioQueue = List<Map<String, String>>.from(args?['audioQueue']);
 
         // Optional values
-        final pre = args['pre'] as String? ?? '';
-        final nxt = args['nxt'] as String? ?? '';
+        final pre = args?['pre'] as String? ?? '';
+        final nxt = args?['nxt'] as String? ?? '';
 
         return MaterialPageRoute(
           builder: (context) => MusicPlayer(

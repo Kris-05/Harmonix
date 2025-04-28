@@ -22,8 +22,7 @@ class MusicPlayer extends ConsumerStatefulWidget {
   final String nxt;
 
   // New fields to optionally skip Spotify API fetch
-  late List<Map<String, String>>?
-  audioQueue; // path to local audio file (asset or file)
+  late List<Map<String, String>>? audioQueue; // path to local audio file (asset or file)
   late bool? isLocal;
 
   MusicPlayer({
