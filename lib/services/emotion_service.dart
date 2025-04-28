@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert'; 
 
 class EmotionService {
-  static const String _baseUrl = 'http://192.168.120.28:8000'; // Android emulator
+  static const String _baseUrl = 'http://localhost:8000'; // Android emulator
   // static const String _baseUrl = 'http://localhost:8000'; // iOS simulator
   // static const String _baseUrl = 'http://YOUR_LOCAL_IP:8000'; // Physical device
 
@@ -34,3 +34,4 @@ class EmotionService {
     }
   }
 }
+

@@ -9,7 +9,7 @@ class SpotifyService {
   // Emotion to query mapping
   static const _emotionToQuery = {
     'happy': 'genre:pop mood:happy',
-    'sad': 'genre:blues mood:sad',
+    'sad': 'genre:soul mood:sad',
     'angry': 'genre:metal mood:aggressive',
     'neutral': 'genre:indie',
   };

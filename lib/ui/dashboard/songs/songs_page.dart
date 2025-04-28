@@ -5,8 +5,11 @@ import 'package:spotify_ui/providers/music_provider.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:spotify_ui/ui/dashboard/search/search_page.dart';
 
-class SongsPage extends ConsumerWidget {
+class SongsPage extends ConsumerStatefulWidget {
   const SongsPage({super.key});
 
   @override
@@ -104,10 +107,19 @@ class SongsPage extends ConsumerWidget {
             editorPicksUI(mEditorPicksList, musicNotifier),
           ],
         ),
+        floatingActionButton:
+            _isListening
+                ? FloatingActionButton(
+                  onPressed: _toggleRecording,
+                  backgroundColor: Colors.red,
+                  child: const Icon(Icons.mic, color: Colors.white),
+                )
+                : null,
       ),
     );
   }
 
+  Widget recentlyPlayedUI() {
   Widget recentlyPlayedUI() {
     return Column(
       children: [
@@ -203,6 +215,12 @@ class SongsPage extends ConsumerWidget {
                           height: 100,
                           child: Center(
                             child: CircularProgressIndicator(
+                              value:
+                                  loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          (loadingProgress.expectedTotalBytes ??
+                                              1)
+                                      : null,
                               value:
                                   loadingProgress.expectedTotalBytes != null
                                       ? loadingProgress.cumulativeBytesLoaded /
