@@ -9,24 +9,25 @@ import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/domain/custom_strings.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
 import 'package:spotify_ui/providers/music_provider.dart';
+import 'package:spotify_ui/ui/dashboard/songs/widgets/music_player.dart';
 
 // Riverpod provider for dominant color
 final dominantColorProvider = StateProvider<Color>((ref) => Colors.transparent);
-final trackInfoProvider = StateProvider<Map<String, String>>((ref) => {
-  "songName": "",
-  "artistName": "",
-  "imgPath": "",
-});
+final trackInfoProvider = StateProvider<Map<String, String>>(
+  (ref) => {"songName": "", "artistName": "", "imgPath": ""},
+);
 
 class MusicSlab extends ConsumerStatefulWidget {
   final String trackId;
   final AudioPlayer player;
-  String pre,nxt;
+  String pre, nxt;
 
   MusicSlab({
     super.key,
     required this.trackId,
-    required this.player, required this.pre, required this.nxt,
+    required this.player,
+    required this.pre,
+    required this.nxt,
   });
 
   @override
@@ -63,12 +64,11 @@ Future<void> fetchTrackInfo() async {
         return;
       }
 
-    final credentials = SpotifyApiCredentials(
-      CustomStrings.clientId,
-      CustomStrings.clientSecret,
-    );
-
-    final spotify = SpotifyApi(credentials);
+      final credentials = SpotifyApiCredentials(
+        CustomStrings.clientId,
+        CustomStrings.clientSecret,
+      );
+      final spotify = SpotifyApi(credentials);
 
     dynamic track;
 
@@ -99,17 +99,18 @@ Future<void> fetchTrackInfo() async {
       "imgPath": image,
     };
 
-    print("Slab Page");
-    ref.read(musicProvider.notifier).setSong(
-      name: song,
-      artist: artist,
-      image: image,
-      trackId: _currentTrackId,
-    );
-  } catch (e) {
-    print("Unexpected error in fetchTrackInfo(): $e");
+      ref
+          .read(musicProvider.notifier)
+          .setSong(
+            name: song,
+            artist: artist,
+            image: image,
+            trackId: _currentTrackId,
+          );
+    } catch (e) {
+      print("Error fetching track info: $e");
+    }
   }
-}
 
   Future<void> getImagePalette() async {
     if (_currentTrackId.isEmpty) {
@@ -128,7 +129,6 @@ Future<void> fetchTrackInfo() async {
       ref.read(dominantColorProvider.notifier).state = extractedColor;
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -150,10 +150,18 @@ Future<void> fetchTrackInfo() async {
           image: trackInfo["imgPath"] ?? "",
           trackId: _currentTrackId,
         );
-        Navigator.pushNamed(
+        Navigator.push(
           context,
-          AppRoutes.songsPage,
-          arguments: {'trackId': _currentTrackId,'pre':widget.pre,'nxt':widget.nxt}, // Pass trackId as an argument
+          MaterialPageRoute(
+            builder:
+                (context) => MusicPlayer(
+                  trackId: _currentTrackId,
+                  pre: widget.pre,
+                  nxt: widget.nxt,
+                  // isLocal: isLocal,
+                  // audioQueue: audioQueue,
+                ),
+          ),
         );
       },
       child: Container(
@@ -203,7 +211,7 @@ Future<void> fetchTrackInfo() async {
                   ),
                 ),
                 mSpacer(),
-                // Song + artist name 
+                // Song + artist name
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -241,7 +249,8 @@ Future<void> fetchTrackInfo() async {
               ],
             ),
             // like + pause
-            Row(children: [
+            Row(
+              children: [
                 IconButton(
                   onPressed: () {
                     musicNotifier.toggleLike(); // Updated to use Riverpod
@@ -268,7 +277,7 @@ Future<void> fetchTrackInfo() async {
               ],
             ),
           ],
-        ),   
+        ),
       ),
     );
   }

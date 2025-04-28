@@ -109,6 +109,7 @@ class SongsPage extends ConsumerWidget {
   }
 
   Widget recentlyPlayedUI() {
+  Widget recentlyPlayedUI() {
     return Column(
       children: [
         Padding(
@@ -203,6 +204,12 @@ class SongsPage extends ConsumerWidget {
                           height: 100,
                           child: Center(
                             child: CircularProgressIndicator(
+                              value:
+                                  loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          (loadingProgress.expectedTotalBytes ??
+                                              1)
+                                      : null,
                               value:
                                   loadingProgress.expectedTotalBytes != null
                                       ? loadingProgress.cumulativeBytesLoaded /
@@ -371,4 +378,5 @@ class SongsPage extends ConsumerWidget {
       ],
     );
   }
+}
 }

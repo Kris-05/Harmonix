@@ -17,12 +17,13 @@
   import 'package:spotify_ui/ui/dashboard/songs/widgets/lyrics_page.dart';
   import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
-  class MusicPlayer extends ConsumerStatefulWidget {
-    final String trackId;
-    final String pre;
-    final String nxt;
-    // New fields to optionally skip Spotify API fetch
-  late List<Map<String, String>>?audioQueue; // path to local audio file (asset or file)
+class MusicPlayer extends ConsumerStatefulWidget {
+  final String trackId;
+  final String pre;
+  final String nxt;
+
+  // New fields to optionally skip Spotify API fetch
+  late List<Map<String, String>>? audioQueue; // path to local audio file (asset or file)
   late bool? isLocal;
 
      MusicPlayer({super.key, required this.trackId,required this.pre, required this.nxt,this.audioQueue,

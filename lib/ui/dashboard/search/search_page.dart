@@ -10,6 +10,9 @@ import 'package:spotify_ui/domain/app_colors.dart';
 import 'package:spotify_ui/domain/app_routes.dart';
 import 'package:spotify_ui/domain/ui_helper.dart';
 import 'package:spotify_ui/providers/music_provider.dart';
+import 'package:spotify_ui/ui/dashboard/songs/widgets/music_player.dart';
+// import 'package:spotify_ui/ui/dashboard/songs/widgets/music_player.dart';
+
 import 'package:spotify_ui/services/spotify_service.dart';
 import 'package:spotify_ui/services/emotion_service.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -320,7 +323,7 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
         url,
         headers: {
           "Authorization": "Bearer $accessToken",
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
       );
 
@@ -328,7 +331,8 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
         final data = json.decode(response.body);
         setState(() {
           _searchResults = data['tracks']['items'] ?? [];
-          _trackQueue = data['tracks']['items'].map((track) => track['id']).toList();
+          _trackQueue =
+              data['tracks']['items'].map((track) => track['id']).toList();
         });
         print("Track Queue: $_trackQueue");
       } else {
@@ -398,25 +402,27 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
             ),
           ),
         ),
-        
+
+        // Search Results
         Expanded(
-          child: _isSearching
-              ? const Center(child: CircularProgressIndicator())
-              : _searchResults.isEmpty
+          child:
+              _isSearching
+                  ? const Center(child: CircularProgressIndicator())
+                  : _searchResults.isEmpty
                   ? const Center(
-                      child: Text(
-                        'Search for songs',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.only(top: 20),
-                      itemCount: _searchResults.length,
-                      itemBuilder: (context, index) {
-                        final track = _searchResults[index];
-                        return _buildTrackItem(track);
-                      },
+                    child: Text(
+                      'Search for songs',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
+                  )
+                  : ListView.builder(
+                    padding: const EdgeInsets.only(top: 20),
+                    itemCount: _searchResults.length,
+                    itemBuilder: (context, index) {
+                      final track = _searchResults[index];
+                      return _buildTrackItem(track);
+                    },
+                  ),
         ),
       ],
     );
@@ -430,22 +436,24 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
     String durationText = '0:00';
     if (track['duration_ms'] != null) {
       Duration duration = Duration(milliseconds: track['duration_ms'] as int);
-      durationText = '${duration.inMinutes}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}';
+      durationText =
+          '${duration.inMinutes}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}';
     }
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: (track['album']?['images'] as List<dynamic>?)?.isNotEmpty == true
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: Image.network(
-                track['album']['images'][0]['url'].toString(),
-                width: 50,
-                height: 50,
-                fit: BoxFit.cover,
-              ),
-            )
-          : const SizedBox(width: 50, height: 50),
+      leading:
+          (track['album']?['images'] as List<dynamic>?)?.isNotEmpty == true
+              ? ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: Image.network(
+                  track['album']['images'][0]['url'].toString(),
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                ),
+              )
+              : const SizedBox(width: 50, height: 50),
       title: Text(
         track['name']?.toString() ?? 'Unknown Track',
         style: const TextStyle(
@@ -457,19 +465,13 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
       ),
       subtitle: Text(
         artists,
-        style: const TextStyle(
-          color: Colors.grey,
-          fontSize: 12,
-        ),
+        style: const TextStyle(color: Colors.grey, fontSize: 12),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
       trailing: Text(
         durationText,
-        style: const TextStyle(
-          color: Colors.grey,
-          fontSize: 12,
-        ),
+        style: const TextStyle(color: Colors.grey, fontSize: 12),
       ),
       onTap: () {
         print('Selected track: ${track['name']} (ID: ${track['id']})');
@@ -492,10 +494,24 @@ class _SearchBarUIState extends ConsumerState<SearchBarUI> {
           plQueue: _trackQueue,
         );
 
-        Navigator.pushNamed(
-          context, 
-          AppRoutes.songsPage, 
-          arguments: {'trackId': track['id'] } ,
+        // Navigator.pushNamed(
+        //   context,
+        //   AppRoutes.songsPage,
+        //   arguments: {'trackId': track['id'] } ,
+        // );
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => MusicPlayer(
+                  trackId: track['id'],
+                  pre: pre,
+                  nxt: nxt,
+                  // isLocal: isLocal,
+                  // audioQueue: audioQueue,
+                ),
+          ),
         );
       },
     );
