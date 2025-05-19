@@ -79,7 +79,6 @@ def predict_gesture_from_image(frame):
                 return actions[action_idx]
     return "no_hand"
 
-
 MAX_FRAMES = 3
 client_predictions = {}
 
